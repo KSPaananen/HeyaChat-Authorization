@@ -3,8 +3,16 @@
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
 USER app
 WORKDIR /app
-EXPOSE 8080
-EXPOSE 8081
+
+# Development 7000 http 7001 https
+EXPOSE 7000 
+EXPOSE 7001
+
+# Production 8000 http 8001 https
+EXPOSE 8000 
+EXPOSE 8001 
+
+# Define enviroment in launchSettings.json
 
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 ARG BUILD_CONFIGURATION=Release
