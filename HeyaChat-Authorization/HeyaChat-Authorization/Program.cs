@@ -1,3 +1,4 @@
+using HeyaChat_Authorization.Models.Context;
 using HeyaChat_Authorization.Repositories.Configuration;
 using HeyaChat_Authorization.Repositories.Users;
 using HeyaChat_Authorization.Repositories.Users.Interfaces;
@@ -15,11 +16,11 @@ var builder = WebApplication.CreateBuilder(args);
 Console.WriteLine($"Current environment: {builder.Environment.EnvironmentName}");
 
 // Read config values with repository
-var config = builder.Configuration;
-var repository = new ConfigurationRepository(config);
+var _config = builder.Configuration;
+var _repository = new ConfigurationRepository(_config);
 
 builder.Services.AddControllers();
-// builder.Services.AddDbContext<Name>();
+builder.Services.AddDbContext<AuthorizationDBContext>();
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("Development", options =>
@@ -54,9 +55,9 @@ builder.Services.AddAuthentication(options =>
     options.SaveToken = true;
     options.TokenValidationParameters = new TokenValidationParameters
     {
-        ValidIssuer = repository.GetIssuerFromConfiguration(),
-        ValidAudience = repository.GetAudienceFromConfiguration(),
-        IssuerSigningKey = new SymmetricSecurityKey(repository.GetSigningKeyFromConfiguration()),
+        ValidIssuer = _repository.GetIssuerFromConfiguration(),
+        ValidAudience = _repository.GetAudienceFromConfiguration(),
+        IssuerSigningKey = new SymmetricSecurityKey(_repository.GetSigningKeyFromConfiguration()),
         ValidateIssuer = false,
         ValidateAudience = false,
         ValidateLifetime = true,

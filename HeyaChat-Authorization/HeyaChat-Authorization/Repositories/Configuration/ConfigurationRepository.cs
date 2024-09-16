@@ -95,5 +95,23 @@ namespace HeyaChat_Authorization.Repositories.Configuration
             throw new FormatException($"Unable to read encryption key in jwt from configuration.");
         }
 
+        public string GetConnectionStringFromConfiguration()
+        {
+            if (_config == null)
+            {
+                throw new NullReferenceException("Configuration is null.");
+            }
+
+            // Use GetSection since connectionstrins is lowercase in appsettings
+            string result = _config.GetSection("connectionstrings:postgresqlserver").Value ?? "";
+
+            if (result != "")
+            {
+                return result;
+            }
+
+            throw new FormatException($"Unable to read connection string in connectionstrings from configuration.");
+        }
+
     }
 }

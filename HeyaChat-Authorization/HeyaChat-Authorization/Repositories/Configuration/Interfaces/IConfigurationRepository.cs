@@ -11,5 +11,7 @@
         string GetAudienceFromConfiguration();
 
         byte[] GetEncryptionKeyFromConfiguration();
+
+        string GetConnectionStringFromConfiguration();
     }
 }

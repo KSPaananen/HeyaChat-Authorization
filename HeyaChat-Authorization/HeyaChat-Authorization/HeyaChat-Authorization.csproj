@@ -28,7 +28,6 @@
 
   <ItemGroup>
     <Folder Include="DataObjects\DTO\" />
-    <Folder Include="DataObjects\DRO\" />
   </ItemGroup>
 
 </Project>
