@@ -4,7 +4,7 @@
 ///     <para>Table for storing JTI's of tokens.</para>
 ///     <para>ExpiresAt can be assigned through code. Read duration from appsettings.</para>
 /// </summary>
-public partial class Token
+public partial class Tokens
 {
     public long TokenId { get; set; }
 
@@ -16,5 +16,5 @@ public partial class Token
 
     public long? DeviceId { get; set; }
 
-    public virtual Device? Device { get; set; }
+    public virtual Devices? Device { get; set; }
 }

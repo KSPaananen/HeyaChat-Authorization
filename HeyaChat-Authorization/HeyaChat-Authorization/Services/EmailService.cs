@@ -27,7 +27,7 @@ namespace HeyaChat_Authorization.Services
         public EmailService(IConfigurationRepository configurationRepository, ICodesRepository codesRepository)
         {
             _configurationRepository = configurationRepository ?? throw new NullReferenceException(nameof(configurationRepository));
-            _codesRepository = _codesRepository ?? throw new NullReferenceException(nameof(codesRepository));
+            _codesRepository = codesRepository ?? throw new NullReferenceException(nameof(codesRepository));
 
             port = _configurationRepository.GetEmailPort();
             host = _configurationRepository.GetEmailHost();

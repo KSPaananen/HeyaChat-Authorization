@@ -20,7 +20,7 @@ namespace HeyaChat_Authorization.Repositories.UserDetails
         ///     Insert a new row to user_details table.
         /// </summary>
         /// <returns>UserId of the created row. 0 if row could not be inserted.</returns>
-        public long InsertUserDetailsToTable(UserDetail details)
+        public long InsertUserDetailsToTable(Models.UserDetails details)
         {
             try
             {

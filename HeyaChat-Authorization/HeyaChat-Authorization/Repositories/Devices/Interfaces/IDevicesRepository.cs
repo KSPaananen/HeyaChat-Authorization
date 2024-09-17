@@ -4,7 +4,7 @@ namespace HeyaChat_Authorization.Repositories.Devices.Interfaces
 {
     public interface IDevicesRepository
     {
-        long InsertDeviceToTable(Device device);
+        long InsertDeviceToTable(Models.Devices device);
 
         bool DeleteDevice(long deviceId);
     }

@@ -6,11 +6,11 @@ namespace HeyaChat_Authorization.Repositories.Users.Interfaces
 {
     public interface IUsersRepository
     {
-        User GetUserByUserID(long userID);
+        Models.Users GetUserByUserID(long userID);
 
         bool DoesUserExist(string username, string email);
 
-        long InsertUser(User newUser);
+        long InsertUser(Models.Users newUser);
 
         bool DeleteUser(long userID);
 

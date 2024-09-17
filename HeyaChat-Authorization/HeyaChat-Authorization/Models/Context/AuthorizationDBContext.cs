@@ -18,23 +18,23 @@ public partial class AuthorizationDBContext : DbContext
         _repository = repository ?? throw new NullReferenceException(nameof(repository));
     }
 
-    public virtual DbSet<AuditLog> AuditLogs { get; set; }
+    public virtual DbSet<AuditLogs> AuditLogs { get; set; }
 
-    public virtual DbSet<BlockedCredential> BlockedCredentials { get; set; }
+    public virtual DbSet<BlockedCredentials> BlockedCredentials { get; set; }
 
-    public virtual DbSet<DeleteRequest> DeleteRequests { get; set; }
+    public virtual DbSet<DeleteRequests> DeleteRequests { get; set; }
 
-    public virtual DbSet<Device> Devices { get; set; }
+    public virtual DbSet<Devices> Devices { get; set; }
 
-    public virtual DbSet<MfaCode> MfaCodes { get; set; }
+    public virtual DbSet<Codes> Codes { get; set; }
 
-    public virtual DbSet<Suspension> Suspensions { get; set; }
+    public virtual DbSet<Suspensions> Suspensions { get; set; }
 
-    public virtual DbSet<Token> Tokens { get; set; }
+    public virtual DbSet<Tokens> Tokens { get; set; }
 
-    public virtual DbSet<User> Users { get; set; }
+    public virtual DbSet<Users> Users { get; set; }
 
-    public virtual DbSet<UserDetail> UserDetails { get; set; }
+    public virtual DbSet<UserDetails> UserDetails { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
@@ -47,7 +47,7 @@ public partial class AuthorizationDBContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        modelBuilder.Entity<AuditLog>(entity =>
+        modelBuilder.Entity<AuditLogs>(entity =>
         {
             entity.HasKey(e => e.LogId).HasName("audit_logs_pkey");
 
@@ -70,7 +70,7 @@ public partial class AuthorizationDBContext : DbContext
                 .HasConstraintName("audit_logs_device_id_fkey");
         });
 
-        modelBuilder.Entity<BlockedCredential>(entity =>
+        modelBuilder.Entity<BlockedCredentials>(entity =>
         {
             entity.HasKey(e => e.BlockId).HasName("blocked_credentials_pkey");
 
@@ -87,7 +87,7 @@ public partial class AuthorizationDBContext : DbContext
                 .HasColumnName("phone");
         });
 
-        modelBuilder.Entity<DeleteRequest>(entity =>
+        modelBuilder.Entity<DeleteRequests>(entity =>
         {
             entity.HasKey(e => e.DeleteId).HasName("delete_requests_pkey");
 
@@ -109,7 +109,7 @@ public partial class AuthorizationDBContext : DbContext
                 .HasConstraintName("delete_requests_user_id_fkey");
         });
 
-        modelBuilder.Entity<Device>(entity =>
+        modelBuilder.Entity<Devices>(entity =>
         {
             entity.HasKey(e => e.DeviceId).HasName("devices_pkey");
 
@@ -136,13 +136,13 @@ public partial class AuthorizationDBContext : DbContext
                 .HasConstraintName("devices_user_id_fkey");
         });
 
-        modelBuilder.Entity<MfaCode>(entity =>
+        modelBuilder.Entity<Codes>(entity =>
         {
             entity.HasKey(e => e.CodeId).HasName("mfa_codes_pkey");
 
-            entity.ToTable("mfa_codes");
+            entity.ToTable("codes");
 
-            entity.HasIndex(e => e.UserId, "idx_mfa_codes_user_id");
+            entity.HasIndex(e => e.UserId, "idx_codes_user_id");
 
             entity.Property(e => e.CodeId).HasColumnName("code_id");
             entity.Property(e => e.Code)
@@ -157,10 +157,10 @@ public partial class AuthorizationDBContext : DbContext
             entity.HasOne(d => d.User).WithMany(p => p.MfaCodes)
                 .HasForeignKey(d => d.UserId)
                 .OnDelete(DeleteBehavior.Cascade)
-                .HasConstraintName("mfa_codes_user_id_fkey");
+                .HasConstraintName("codes_user_id_fkey");
         });
 
-        modelBuilder.Entity<Suspension>(entity =>
+        modelBuilder.Entity<Suspensions>(entity =>
         {
             entity.HasKey(e => e.SuspensionId).HasName("suspensions_pkey");
 
@@ -185,7 +185,7 @@ public partial class AuthorizationDBContext : DbContext
                 .HasConstraintName("suspensions_user_id_fkey");
         });
 
-        modelBuilder.Entity<Token>(entity =>
+        modelBuilder.Entity<Tokens>(entity =>
         {
             entity.HasKey(e => e.TokenId).HasName("tokens_pkey");
 
@@ -209,7 +209,7 @@ public partial class AuthorizationDBContext : DbContext
                 .HasConstraintName("tokens_device_id_fkey");
         });
 
-        modelBuilder.Entity<User>(entity =>
+        modelBuilder.Entity<Users>(entity =>
         {
             entity.HasKey(e => e.UserId).HasName("users_pkey");
 
@@ -238,7 +238,7 @@ public partial class AuthorizationDBContext : DbContext
                 .HasColumnName("username");
         });
 
-        modelBuilder.Entity<UserDetail>(entity =>
+        modelBuilder.Entity<UserDetails>(entity =>
         {
             entity
                 .HasNoKey()

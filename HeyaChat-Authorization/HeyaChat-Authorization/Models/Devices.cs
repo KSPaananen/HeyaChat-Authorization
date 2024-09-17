@@ -4,7 +4,7 @@
 ///     <para>Table for storing devices associated with users. Enforce only one active device at a time.</para>
 ///     <para>Do not assign UsedAt with code, because it's handled by the database.</para>
 /// </summary>
-public partial class Device
+public partial class Devices
 {
     public long DeviceId { get; set; }
 
@@ -18,9 +18,9 @@ public partial class Device
 
     public long? UserId { get; set; }
 
-    public virtual ICollection<AuditLog> AuditLogs { get; set; } = new List<AuditLog>();
+    public virtual ICollection<AuditLogs> AuditLogs { get; set; } = new List<AuditLogs>();
 
-    public virtual ICollection<Token> Tokens { get; set; } = new List<Token>();
+    public virtual ICollection<Tokens> Tokens { get; set; } = new List<Tokens>();
 
-    public virtual User? User { get; set; }
+    public virtual Users? User { get; set; }
 }

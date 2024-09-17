@@ -19,7 +19,7 @@ namespace HeyaChat_Authorization.Repositories.Users
         }
 
 
-        public User GetUserByUserID(long userID)
+        public Models.Users GetUserByUserID(long userID)
         {
             var result = (from user in _context.Users
                           where user.UserId == userID
@@ -55,7 +55,7 @@ namespace HeyaChat_Authorization.Repositories.Users
         ///     <para>Insert user object to users table.</para>
         /// </summary>
         /// <returns>ID of the created row.</returns>
-        public long InsertUser(User newUser)
+        public long InsertUser(Models.Users newUser)
         {
             try
             {

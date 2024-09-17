@@ -3,6 +3,8 @@ using HeyaChat_Authorization.Repositories.Configuration;
 using HeyaChat_Authorization.Repositories.Configuration.Interfaces;
 using HeyaChat_Authorization.Repositories.Devices;
 using HeyaChat_Authorization.Repositories.Devices.Interfaces;
+using HeyaChat_Authorization.Repositories.MfaCodes;
+using HeyaChat_Authorization.Repositories.MfaCodes.Interfaces;
 using HeyaChat_Authorization.Repositories.UserDetails;
 using HeyaChat_Authorization.Repositories.UserDetails.Interfaces;
 using HeyaChat_Authorization.Repositories.Users;
@@ -92,6 +94,7 @@ builder.Services.AddScoped<IConfigurationRepository, ConfigurationRepository>();
 builder.Services.AddScoped<IUsersRepository, UsersRepository>();
 builder.Services.AddScoped<IUserDetailsRepository, UserDetailsRepository>();
 builder.Services.AddScoped<IDevicesRepository, DevicesRepository>();
+builder.Services.AddScoped<ICodesRepository, CodesRepository>();
 
 // Define ports for enviroments
 if (builder.Environment.IsDevelopment())

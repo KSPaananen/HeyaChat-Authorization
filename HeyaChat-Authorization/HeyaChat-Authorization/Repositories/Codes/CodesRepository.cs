@@ -29,7 +29,7 @@ namespace HeyaChat_Authorization.Repositories.MfaCodes
             {
                 TimeSpan lifetime = _repository.GetCodeLifeTime();
 
-                MfaCode newCode = new MfaCode
+                Codes newCode = new Codes
                 {
                     Code = code,
                     ExpiresAt = DateTime.UtcNow + lifetime,
@@ -37,7 +37,7 @@ namespace HeyaChat_Authorization.Repositories.MfaCodes
                     UserId = userId,
                 };
 
-                _context.MfaCodes.Add(newCode);
+                _context.Codes.Add(newCode);
                 _context.SaveChanges();
 
                 return newCode.CodeId;

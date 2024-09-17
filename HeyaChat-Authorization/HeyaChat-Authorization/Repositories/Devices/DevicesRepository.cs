@@ -20,7 +20,7 @@ namespace HeyaChat_Authorization.Repositories.Devices
         ///     Insert device to devices table and return id of the created row.
         /// </summary>
         /// <returns>deviceId of the created row. 0 if row could not be inserted.</returns>
-        public long InsertDeviceToTable(Device device)
+        public long InsertDeviceToTable(Models.Devices device)
         {
             try
             {

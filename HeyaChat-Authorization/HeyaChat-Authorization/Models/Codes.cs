@@ -4,7 +4,7 @@
 ///     <para>Table for storing multifactorauth codes associated with users.</para>
 ///     <para>ExpiresAt can be assigned through code. Read duration from appsettings</para>
 /// </summary>
-public partial class MfaCode
+public partial class Codes
 {
     public long CodeId { get; set; }
 
@@ -16,5 +16,5 @@ public partial class MfaCode
 
     public long? UserId { get; set; }
 
-    public virtual User? User { get; set; }
+    public virtual Users? User { get; set; }
 }

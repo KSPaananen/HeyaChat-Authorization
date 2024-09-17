@@ -63,7 +63,7 @@ namespace HeyaChat_Authorization.Controllers
             string hashedPassword = _hasherService.Hash(reDRO.Password, salt);
 
             // Create new user object and insert it to the DB
-            User newUser = new User
+            Users newUser = new Users
             {
                 Username = reDRO.Username,
                 PasswordHash = hashedPassword,
@@ -75,7 +75,7 @@ namespace HeyaChat_Authorization.Controllers
             long userId = _usersRepository.InsertUser(newUser);
 
             // Create a new userDetails object and insert it to the DB
-            UserDetail details = new UserDetail
+            UserDetails details = new UserDetails
             {
                 UserId = userId,
                 EmailVerified = false,
@@ -88,7 +88,7 @@ namespace HeyaChat_Authorization.Controllers
             long userDetailsId = _userDetailsRepository.InsertUserDetailsToTable(details);
 
             // Create new device object and insert it to the DB
-            Device device = new Device
+            Devices device = new Devices
             {
                 DeviceName = reDRO.DeviceName,
                 DeviceIdentifier = reDRO.DeviceIdentifier,
@@ -124,8 +124,7 @@ namespace HeyaChat_Authorization.Controllers
         {
             // If user logs in succesfully, but their email isnt verified, prompt them to verify email and only then give them a jwt
 
-            _emailService.SendVerificationEmail("awdad");
-
+            
 
             return StatusCode(StatusCodes.Status401Unauthorized);
         }
