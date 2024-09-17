@@ -1,5 +1,10 @@
 using HeyaChat_Authorization.Models.Context;
 using HeyaChat_Authorization.Repositories.Configuration;
+using HeyaChat_Authorization.Repositories.Configuration.Interfaces;
+using HeyaChat_Authorization.Repositories.Devices;
+using HeyaChat_Authorization.Repositories.Devices.Interfaces;
+using HeyaChat_Authorization.Repositories.UserDetails;
+using HeyaChat_Authorization.Repositories.UserDetails.Interfaces;
 using HeyaChat_Authorization.Repositories.Users;
 using HeyaChat_Authorization.Repositories.Users.Interfaces;
 using HeyaChat_Authorization.Services;
@@ -7,7 +12,6 @@ using HeyaChat_Authorization.Services.Interfaces;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Swashbuckle.AspNetCore.Filters;
-using System.Text;
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 
@@ -55,9 +59,9 @@ builder.Services.AddAuthentication(options =>
     options.SaveToken = true;
     options.TokenValidationParameters = new TokenValidationParameters
     {
-        ValidIssuer = _repository.GetIssuerFromConfiguration(),
-        ValidAudience = _repository.GetAudienceFromConfiguration(),
-        IssuerSigningKey = new SymmetricSecurityKey(_repository.GetSigningKeyFromConfiguration()),
+        ValidIssuer = _repository.GetIssuer(),
+        ValidAudience = _repository.GetAudience(),
+        IssuerSigningKey = new SymmetricSecurityKey(_repository.GetSigningKey()),
         ValidateIssuer = false,
         ValidateAudience = false,
         ValidateLifetime = true,
@@ -67,7 +71,7 @@ builder.Services.AddAuthentication(options =>
 
 builder.Services.AddAuthorization();
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen(options => // This swagger configuration doesn't work in .NET 8. Worked in .NET 7 projects??
+builder.Services.AddSwaggerGen(options => 
 {
     options.AddSecurityDefinition("Bearer token", new Microsoft.OpenApi.Models.OpenApiSecurityScheme
     {
@@ -78,12 +82,16 @@ builder.Services.AddSwaggerGen(options => // This swagger configuration doesn't 
     options.OperationFilter<SecurityRequirementsOperationFilter>();
 });
 
-// Add services 
+// Services
 builder.Services.AddScoped<IJwtService, JwtService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
+builder.Services.AddScoped<IHasherService, HasherService>();
 
-// Add repositories
+// Repositories
+builder.Services.AddScoped<IConfigurationRepository, ConfigurationRepository>();
 builder.Services.AddScoped<IUsersRepository, UsersRepository>();
+builder.Services.AddScoped<IUserDetailsRepository, UserDetailsRepository>();
+builder.Services.AddScoped<IDevicesRepository, DevicesRepository>();
 
 // Define ports for enviroments
 if (builder.Environment.IsDevelopment())

@@ -1,6 +1,6 @@
 ﻿namespace HeyaChat_Authorization.DataObjects.DRO
 {
-    public class RegisterDRO
+    public class LoginDRO
     {
         public string Username { get; set; } = null!;
 
@@ -14,4 +14,6 @@
 
         public string CountryTag { get; set; } = null!;
     }
+
+
 }

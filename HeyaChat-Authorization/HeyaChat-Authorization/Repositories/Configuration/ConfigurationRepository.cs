@@ -5,14 +5,14 @@ namespace HeyaChat_Authorization.Repositories.Configuration
 {
     public class ConfigurationRepository : IConfigurationRepository
     {
-        private static IConfiguration? _config;
+        private IConfiguration? _config;
 
         public ConfigurationRepository(IConfiguration config)
         {
             _config = config ?? throw new ArgumentNullException(nameof(config));
         }
 
-        public TimeSpan GetTokenLifeTimeFromConfiguration()
+        public TimeSpan GetTokenLifeTime()
         {
             if (_config == null)
             {
@@ -27,7 +27,7 @@ namespace HeyaChat_Authorization.Repositories.Configuration
             throw new FormatException($"Unable to read lifetime in jwt from configuration.");
         }
 
-        public byte[] GetSigningKeyFromConfiguration()
+        public byte[] GetSigningKey()
         {
             if (_config == null)
             {
@@ -44,7 +44,7 @@ namespace HeyaChat_Authorization.Repositories.Configuration
             throw new FormatException($"Unable to read signingkey in jwt from configuration.");
         }
 
-        public string GetIssuerFromConfiguration()
+        public string GetIssuer()
         {
             if (_config == null)
             {
@@ -61,7 +61,7 @@ namespace HeyaChat_Authorization.Repositories.Configuration
             throw new FormatException($"Unable to read issuer in jwt from configuration.");
         }
 
-        public string GetAudienceFromConfiguration()
+        public string GetAudience()
         {
             if (_config == null)
             {
@@ -78,7 +78,7 @@ namespace HeyaChat_Authorization.Repositories.Configuration
             throw new FormatException($"Unable to read issuer in jwt from configuration.");
         }
 
-        public byte[] GetEncryptionKeyFromConfiguration()
+        public byte[] GetEncryptionKey()
         {
             if (_config == null)
             {
@@ -95,7 +95,7 @@ namespace HeyaChat_Authorization.Repositories.Configuration
             throw new FormatException($"Unable to read encryption key in jwt from configuration.");
         }
 
-        public string GetConnectionStringFromConfiguration()
+        public string GetConnectionString()
         {
             if (_config == null)
             {
@@ -103,7 +103,7 @@ namespace HeyaChat_Authorization.Repositories.Configuration
             }
 
             // Use GetSection since connectionstrins is lowercase in appsettings
-            string result = _config.GetSection("connectionstrings:postgresqlserver").Value ?? "";
+            string result = _config.GetConnectionString("postgresqlserver") ?? "";
 
             if (result != "")
             {
@@ -113,5 +113,89 @@ namespace HeyaChat_Authorization.Repositories.Configuration
             throw new FormatException($"Unable to read connection string in connectionstrings from configuration.");
         }
 
+        public string GetEmailSender()
+        {
+            if (_config == null)
+            {
+                throw new NullReferenceException("Configuration is null.");
+            }
+
+            string result = _config.GetSection("emailService:sender").Value ?? "";
+
+            if (result != "")
+            {
+                return result;
+            }
+
+            throw new FormatException($"Unable to read sender in emailService from configuration.");
+        }
+
+        public string GetEmailPassword()
+        {
+            if (_config == null)
+            {
+                throw new NullReferenceException("Configuration is null.");
+            }
+
+            string result = _config.GetSection("emailService:password").Value ?? "";
+
+            if (result != "")
+            {
+                return result;
+            }
+
+            throw new FormatException($"Unable to read password in emailService from configuration.");
+        }
+
+        public string GetEmailHost()
+        {
+            if (_config == null)
+            {
+                throw new NullReferenceException("Configuration is null.");
+            }
+
+            string result = _config.GetSection("emailService:host").Value ?? "";
+
+            if (result != "")
+            {
+                return result;
+            }
+
+            throw new FormatException($"Unable to read host in emailService from configuration.");
+        }
+
+        public int GetEmailPort()
+        {
+            if (_config == null)
+            {
+                throw new NullReferenceException("Configuration is null.");
+            }
+
+            string result = _config.GetSection("emailService:port").Value ?? "";
+
+            if (result != "")
+            {
+                return int.Parse(result);
+            }
+
+            throw new FormatException($"Unable to read port in emailService from configuration.");
+        }
+
+        public TimeSpan GetCodeLifeTime()
+        {
+            if (_config == null)
+            {
+                throw new NullReferenceException("Configuration is null.");
+            }
+
+            string result = _config.GetSection("codes:lifetime").Value ?? "";
+
+            if (result != "")
+            {
+                return TimeSpan.Parse(result);
+            }
+
+            throw new FormatException($"Unable to read lifetime in codesfrom configuration.");
+        }
     }
 }

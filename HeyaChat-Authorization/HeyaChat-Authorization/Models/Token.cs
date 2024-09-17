@@ -1,8 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
+﻿namespace HeyaChat_Authorization.Models;
 
-namespace HeyaChat_Authorization.Models;
-
+/// <summary>
+///     <para>Table for storing JTI's of tokens.</para>
+///     <para>ExpiresAt can be assigned through code. Read duration from appsettings.</para>
+/// </summary>
 public partial class Token
 {
     public long TokenId { get; set; }

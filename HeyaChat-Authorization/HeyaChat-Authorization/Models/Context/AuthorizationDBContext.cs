@@ -1,24 +1,21 @@
 ﻿using System;
-using System.Collections.Generic;
-using HeyaChat_Authorization.Repositories.Configuration;
+using HeyaChat_Authorization.Repositories.Configuration.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
 namespace HeyaChat_Authorization.Models.Context;
 
 public partial class AuthorizationDBContext : DbContext
 {
-    private IConfiguration _config;
-    private ConfigurationRepository _repository;
+    private IConfigurationRepository _repository;
 
     public AuthorizationDBContext()
     {
-
+        
     }
 
-    public AuthorizationDBContext(IConfiguration config, ConfigurationRepository repository, DbContextOptions<AuthorizationDBContext> options) : base(options)
+    public AuthorizationDBContext(IConfigurationRepository repository, DbContextOptions<AuthorizationDBContext> options) : base(options)
     {
-        _config = config ?? throw new NullReferenceException(nameof(config));
-        _repository = repository ?? throw new NullReferenceException(nameof(_repository));
+        _repository = repository ?? throw new NullReferenceException(nameof(repository));
     }
 
     public virtual DbSet<AuditLog> AuditLogs { get; set; }
@@ -40,7 +37,13 @@ public partial class AuthorizationDBContext : DbContext
     public virtual DbSet<UserDetail> UserDetails { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-        => optionsBuilder.UseNpgsql(_repository.GetConnectionStringFromConfiguration());
+    {
+        optionsBuilder.UseNpgsql(_repository.GetConnectionString(), builder =>
+        {
+            builder.EnableRetryOnFailure(5, TimeSpan.FromSeconds(5), null);
+        });
+    }
+        
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

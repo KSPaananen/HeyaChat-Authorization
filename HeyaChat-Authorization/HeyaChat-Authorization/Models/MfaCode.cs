@@ -1,8 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
+﻿namespace HeyaChat_Authorization.Models;
 
-namespace HeyaChat_Authorization.Models;
-
+/// <summary>
+///     <para>Table for storing multifactorauth codes associated with users.</para>
+///     <para>ExpiresAt can be assigned through code. Read duration from appsettings</para>
+/// </summary>
 public partial class MfaCode
 {
     public long CodeId { get; set; }

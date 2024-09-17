@@ -23,10 +23,10 @@ namespace HeyaChat_Authorization.Services
         public string GenerateToken(int userID, string type)
         {
             // Get required values from repository for creating jwt
-            TimeSpan lifetime = _repository.GetTokenLifeTimeFromConfiguration();
-            byte[] signingKey = _repository.GetSigningKeyFromConfiguration();
-            string issuer = _repository.GetIssuerFromConfiguration();
-            string audience = _repository.GetAudienceFromConfiguration();
+            TimeSpan lifetime = _repository.GetTokenLifeTime();
+            byte[] signingKey = _repository.GetSigningKey();
+            string issuer = _repository.GetIssuer();
+            string audience = _repository.GetAudience();
 
             // Encrypt userID & token type before appending to claims
             string encryptedUserID = EncryptClaim(userID.ToString());
@@ -92,7 +92,7 @@ namespace HeyaChat_Authorization.Services
 
         private string EncryptClaim(string value)
         {
-            byte[] key = _repository.GetEncryptionKeyFromConfiguration();
+            byte[] key = _repository.GetEncryptionKey();
 
             using (Aes aesAlg = Aes.Create())
             {

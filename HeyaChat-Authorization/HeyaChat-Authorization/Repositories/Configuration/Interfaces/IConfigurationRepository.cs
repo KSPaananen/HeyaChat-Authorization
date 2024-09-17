@@ -2,16 +2,26 @@
 {
     public interface IConfigurationRepository
     {
-        TimeSpan GetTokenLifeTimeFromConfiguration();
+        TimeSpan GetTokenLifeTime();
 
-        byte[] GetSigningKeyFromConfiguration();
+        byte[] GetSigningKey();
 
-        string GetIssuerFromConfiguration();
+        string GetIssuer();
 
-        string GetAudienceFromConfiguration();
+        string GetAudience();
 
-        byte[] GetEncryptionKeyFromConfiguration();
+        byte[] GetEncryptionKey();
 
-        string GetConnectionStringFromConfiguration();
+        string GetConnectionString();
+
+        string GetEmailSender();
+
+        string GetEmailPassword();
+
+        string GetEmailHost();
+
+        int GetEmailPort();
+
+        TimeSpan GetCodeLifeTime();
     }
 }
