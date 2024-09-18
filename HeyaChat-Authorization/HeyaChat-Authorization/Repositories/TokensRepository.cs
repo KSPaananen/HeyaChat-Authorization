@@ -29,6 +29,30 @@ namespace HeyaChat_Authorization.Repositories
             }
         }
 
+        public long InvalidateToken(Token token)
+        {
+            try
+            {
+                var result = (from tokens in _context.Tokens
+                              where tokens.Identifier == token.Identifier
+                              select tokens).FirstOrDefault() ?? null;
+
+                if (result != null)
+                {
+                    result.Active = false;
+                    _context.SaveChanges();
+
+                    return result.TokenId;
+                }
+
+                return 0;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
+        }
+
         public bool IsTokenValid(Guid jti, UserDevice deviceDetails)
         {
             try

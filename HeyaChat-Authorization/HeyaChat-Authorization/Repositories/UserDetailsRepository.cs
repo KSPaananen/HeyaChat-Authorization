@@ -16,14 +16,54 @@ namespace HeyaChat_Authorization.Repositories
             _context = context ?? throw new NullReferenceException(nameof(context));
         }
 
-        public long InsertUserDetailsToTable(UserDetail details)
+        public UserDetail GetUserDetailsByUserId(long userId)
         {
             try
             {
-                _context.UserDetails.Add(details);
+                var result = (from detail  in _context.UserDetails
+                              where detail.UserId == userId
+                              select detail).FirstOrDefault() ?? new UserDetail();
+
+                return result;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
+        }
+
+        public long InsertUserDetails(UserDetail detail)
+        {
+            try
+            {
+                _context.UserDetails.Add(detail);
                 _context.SaveChanges();
 
-                return details.UserId;
+                return detail.DetailId;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
+        }
+
+        public long UpdateUserDetails(UserDetail detail)
+        {
+            try
+            {
+                var result = (from details in _context.UserDetails
+                              where details.DetailId == detail.DetailId
+                              select details).FirstOrDefault() ?? null;
+
+                if (result != null)
+                {
+                    result = detail;
+                    _context.SaveChanges();
+
+                    return result.DetailId;
+                }
+
+                return 0;
             }
             catch (Exception ex)
             {
@@ -54,10 +94,6 @@ namespace HeyaChat_Authorization.Repositories
                 throw new Exception(ex.Message);
             }
         }
-
-
-
-
 
     }
 }

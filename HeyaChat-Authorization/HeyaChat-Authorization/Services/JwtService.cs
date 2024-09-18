@@ -60,25 +60,16 @@ namespace HeyaChat_Authorization.Services
 
             SecurityToken token = tokenHandler.CreateToken(tokenDesc);
 
-            // Create new Token object with generated jti and insert to DB
-            try
+            Token rowToken = new Token
             {
-                Token rowToken = new Token
-                {
-                    Identifier = jti,
-                    ExpiresAt = DateTime.UtcNow + lifetime,
-                    Active = true,
-                    DeviceId = deviceId,
-                };
+                Identifier = jti,
+                ExpiresAt = DateTime.UtcNow + lifetime,
+                Active = true,
+                DeviceId = deviceId,
+            };
 
-                _tokensRepository.InsertToken(rowToken);
-            }
-            catch (Exception ex)
-            {
-                // Log error here
+            _tokensRepository.InsertToken(rowToken);
 
-            }
-           
             return tokenHandler.WriteToken(token);
         }
 
@@ -133,20 +124,9 @@ namespace HeyaChat_Authorization.Services
 
         public bool VerifyToken(Guid jti, UserDevice device)
         {
-            try
-            {
-                // Check if valid token can be found with tokensrepository
-                bool isValid = _tokensRepository.IsTokenValid(jti, device);
+            bool isValid = _tokensRepository.IsTokenValid(jti, device);
 
-                return isValid;
-            }
-            catch (Exception ex)
-            {
-                // Log error here
-
-
-                return false;
-            }
+            return isValid;
         }
 
         private string EncryptClaim(string value)

@@ -16,7 +16,7 @@ namespace HeyaChat_Authorization.Repositories
             _context = context ?? throw new NullReferenceException(nameof(context));
         }
 
-        public long InsertDeviceToTable(Device device)
+        public long InsertDevice(Device device)
         {
             try
             {
@@ -24,6 +24,30 @@ namespace HeyaChat_Authorization.Repositories
                 _context.SaveChanges();
 
                 return device.DeviceId;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
+        }
+
+        public long UpdateDevice(Device device)
+        {
+            try
+            {
+                var result = (from devices in _context.Devices
+                              where devices.DeviceId == device.DeviceId
+                              select devices).FirstOrDefault() ?? null;
+
+                if (result != null)
+                {
+                    result = device;
+                    _context.SaveChanges();
+
+                    return result.DeviceId;
+                }
+
+                return 0;
             }
             catch (Exception ex)
             {

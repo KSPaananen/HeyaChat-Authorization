@@ -246,6 +246,7 @@ public partial class AuthorizationDBContext : DbContext
 
             entity.HasIndex(e => e.UserId, "idx_user_details_user_id");
 
+            entity.Property(e => e.DetailId).HasColumnName("detail_id");
             entity.Property(e => e.CreatedAt)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
                 .HasColumnName("created_at");
@@ -262,11 +263,6 @@ public partial class AuthorizationDBContext : DbContext
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
                 .HasColumnName("updated_at");
             entity.Property(e => e.UserId).HasColumnName("user_id");
-
-            entity.HasOne(d => d.User).WithMany()
-                .HasForeignKey(d => d.UserId)
-                .OnDelete(DeleteBehavior.Cascade)
-                .HasConstraintName("user_details_user_id_fkey");
         });
 
         OnModelCreatingPartial(modelBuilder);

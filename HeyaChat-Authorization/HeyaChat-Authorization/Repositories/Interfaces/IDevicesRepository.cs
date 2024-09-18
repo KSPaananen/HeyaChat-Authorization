@@ -5,7 +5,10 @@ namespace HeyaChat_Authorization.Repositories.Interfaces
     public interface IDevicesRepository
     {
         // Returns ID of a created row
-        long InsertDeviceToTable(Device device);
+        long InsertDevice(Device device);
+
+        // Returns ID of a created row
+        long UpdateDevice(Device device);
 
         // Returns boolean based on if deletion was succesful
         bool DeleteDevice(long deviceId);

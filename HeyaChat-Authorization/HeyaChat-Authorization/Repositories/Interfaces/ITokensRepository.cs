@@ -8,6 +8,8 @@ namespace HeyaChat_Authorization.Repositories.Interfaces
         // Returns ID of a created row
         long InsertToken(Token token);
 
+        long InvalidateToken(Token token);
+
         // Returns boolean based on if row can be found
         bool IsTokenValid(Guid jti, UserDevice device);
     }

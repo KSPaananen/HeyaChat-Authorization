@@ -1,9 +1,8 @@
-﻿namespace HeyaChat_Authorization.Models;
+﻿using System;
+using System.Collections.Generic;
 
-/// <summary>
-///     <para>Table for storing additional details of users. UserId is auto incrementing, instead its direct connection to users table userId.</para>
-///     <para>Do not assign CreatedAt and UpdatedAt with code, because these are handled by the database.</para>
-/// </summary>
+namespace HeyaChat_Authorization.Models;
+
 public partial class UserDetail
 {
     public long DetailId { get; set; }
@@ -18,7 +17,5 @@ public partial class UserDetail
 
     public DateTime? UpdatedAt { get; set; }
 
-    public long UserId { get; set; }
-
-    public virtual User? User { get; set; }
+    public long? UserId { get; set; }
 }

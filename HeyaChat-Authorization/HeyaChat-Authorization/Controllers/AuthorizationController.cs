@@ -85,7 +85,7 @@ namespace HeyaChat_Authorization.Controllers
                 // UpdatedAt is handled by the database
             };
 
-            long userDetailsId = _userDetailsRepository.InsertUserDetailsToTable(details);
+            long userDetailsId = _userDetailsRepository.InsertUserDetails(details);
 
             // Create new device object and insert it to the DB
             Device device = new Device
@@ -97,7 +97,7 @@ namespace HeyaChat_Authorization.Controllers
                 UserId = userId
             };
 
-            long deviceId = _devicesRepository.InsertDeviceToTable(device);
+            long deviceId = _devicesRepository.InsertDevice(device);
 
             // Any of the Id's being 0 indicates a problem with the database, so to prevent "stuck" emails & usernames delete just created rows.
             if (userId <= 0 && userDetailsId <= 0 && deviceId <= 0)
@@ -109,7 +109,7 @@ namespace HeyaChat_Authorization.Controllers
             }
 
             // Send verification email to verify users email. This method automatically saves code to database
-            //_emailService.SendVerificationEmail(userId, dro.Email);
+            _emailService.SendVerificationEmail(userId, dro.Email);
 
             // Generate JWT with type "login". This method automatically adds token to DB
             var token = _jwtService.GenerateToken(userId, deviceId, "login");

@@ -50,15 +50,7 @@ namespace HeyaChat_Authorization.Services
             string code = GenerateCode();
 
             // Store code to DB
-            try
-            {
-                long codeId = _codesRepository.InsertCode(userId, email);
-            }
-            catch (Exception ex)
-            {
-                // Log error here
-
-            }
+            long codeId = _codesRepository.InsertCode(userId, code);
 
             // Set subject
             string subject = "Here's your account recovery code!";
@@ -85,7 +77,7 @@ namespace HeyaChat_Authorization.Services
             }
             catch (Exception ex)
             {
-                // Log error here
+                throw new Exception(ex.Message);
             }
         }
 
@@ -95,16 +87,8 @@ namespace HeyaChat_Authorization.Services
             string code = GenerateCode();
 
             // Store code to DB
-            try
-            {
-                long codeId = _codesRepository.InsertCode(userId, email);
-            }
-            catch (Exception ex)
-            {
-                // Log error here
+            long codeId = _codesRepository.InsertCode(userId, code);
 
-            }
-            
             // Set subject
             string subject = "Here's your email verification code!";
 
@@ -130,8 +114,7 @@ namespace HeyaChat_Authorization.Services
             }
             catch (Exception ex)
             {
-                // Log error here
-
+                throw new Exception(ex.Message);
             }
         }
 
