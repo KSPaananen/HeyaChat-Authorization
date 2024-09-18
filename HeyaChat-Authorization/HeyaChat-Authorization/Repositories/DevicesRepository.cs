@@ -1,8 +1,8 @@
 ﻿using HeyaChat_Authorization.Models;
 using HeyaChat_Authorization.Models.Context;
-using HeyaChat_Authorization.Repositories.Devices.Interfaces;
+using HeyaChat_Authorization.Repositories.Interfaces;
 
-namespace HeyaChat_Authorization.Repositories.Devices
+namespace HeyaChat_Authorization.Repositories
 {
     /// <summary>
     ///     <para>This table is indexed with UserId.</para>
@@ -16,11 +16,7 @@ namespace HeyaChat_Authorization.Repositories.Devices
             _context = context ?? throw new NullReferenceException(nameof(context));
         }
 
-        /// <summary>
-        ///     Insert device to devices table and return id of the created row.
-        /// </summary>
-        /// <returns>deviceId of the created row. 0 if row could not be inserted.</returns>
-        public long InsertDeviceToTable(Models.Devices device)
+        public long InsertDeviceToTable(Device device)
         {
             try
             {
@@ -29,9 +25,9 @@ namespace HeyaChat_Authorization.Repositories.Devices
 
                 return device.DeviceId;
             }
-            catch
+            catch (Exception ex)
             {
-                return 0;
+                throw new Exception(ex.Message);
             }
         }
 
@@ -51,9 +47,9 @@ namespace HeyaChat_Authorization.Repositories.Devices
 
                 return false;
             }
-            catch
+            catch (Exception ex)
             {
-                return false;
+                throw new Exception(ex.Message);
             }
         }
 

@@ -1,9 +1,8 @@
 ﻿using HeyaChat_Authorization.Models;
 using HeyaChat_Authorization.Models.Context;
-using HeyaChat_Authorization.Repositories.Configuration.Interfaces;
-using HeyaChat_Authorization.Repositories.MfaCodes.Interfaces;
+using HeyaChat_Authorization.Repositories.Interfaces;
 
-namespace HeyaChat_Authorization.Repositories.MfaCodes
+namespace HeyaChat_Authorization.Repositories
 {
     /// <summary>
     ///     <para>This table is indexed with UserId.</para>
@@ -11,23 +10,19 @@ namespace HeyaChat_Authorization.Repositories.MfaCodes
     public class CodesRepository : ICodesRepository
     {
         private AuthorizationDBContext _context;
-        private IConfigurationRepository _repository;
+        private IConfigurationRepository _configurationRepository;
 
-        public CodesRepository(AuthorizationDBContext context, IConfigurationRepository repository)
+        public CodesRepository(AuthorizationDBContext context, IConfigurationRepository configurationRepository)
         {
             _context = context ?? throw new NullReferenceException(nameof(context));
-            _repository = repository ?? throw new NullReferenceException(nameof(repository));
+            _configurationRepository = configurationRepository ?? throw new NullReferenceException(nameof(configurationRepository));
         }
 
-        /// <summary>
-        ///     <para></para>
-        /// </summary>
-        /// <returns>ID of the created row. 0 if there was an issue.</returns>
         public long InsertCode(long userId, string code)
         {
             try
             {
-                TimeSpan lifetime = _repository.GetCodeLifeTime();
+                TimeSpan lifetime = _configurationRepository.GetCodeLifeTime();
 
                 Codes newCode = new Codes
                 {
@@ -37,14 +32,14 @@ namespace HeyaChat_Authorization.Repositories.MfaCodes
                     UserId = userId,
                 };
 
-                _context.Codes.Add(newCode);
+                _context.Codess.Add(newCode);
                 _context.SaveChanges();
 
                 return newCode.CodeId;
             }
-            catch
+            catch (Exception ex)
             {
-                return 0;
+                throw new Exception(ex.Message);
             }
         }
     }

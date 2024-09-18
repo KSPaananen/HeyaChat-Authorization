@@ -1,5 +1,4 @@
-﻿using HeyaChat_Authorization.Repositories.Configuration.Interfaces;
-using HeyaChat_Authorization.Repositories.MfaCodes.Interfaces;
+﻿using HeyaChat_Authorization.Repositories.Interfaces;
 using HeyaChat_Authorization.Services.Interfaces;
 using System.Net;
 using System.Net.Mail;
@@ -51,7 +50,15 @@ namespace HeyaChat_Authorization.Services
             string code = GenerateCode();
 
             // Store code to DB
-            var test = _codesRepository.InsertCode(userId, email);
+            try
+            {
+                long codeId = _codesRepository.InsertCode(userId, email);
+            }
+            catch (Exception ex)
+            {
+                // Log error here
+
+            }
 
             // Set subject
             string subject = "Here's your account recovery code!";
@@ -78,7 +85,7 @@ namespace HeyaChat_Authorization.Services
             }
             catch (Exception ex)
             {
-                throw new Exception(ex.Message);
+                // Log error here
             }
         }
 
@@ -88,8 +95,16 @@ namespace HeyaChat_Authorization.Services
             string code = GenerateCode();
 
             // Store code to DB
-            var test = _codesRepository.InsertCode(userId, email);
+            try
+            {
+                long codeId = _codesRepository.InsertCode(userId, email);
+            }
+            catch (Exception ex)
+            {
+                // Log error here
 
+            }
+            
             // Set subject
             string subject = "Here's your email verification code!";
 
@@ -115,7 +130,8 @@ namespace HeyaChat_Authorization.Services
             }
             catch (Exception ex)
             {
-                throw new Exception(ex.Message);
+                // Log error here
+
             }
         }
 
@@ -132,7 +148,6 @@ namespace HeyaChat_Authorization.Services
 
             return new string(charArray);
         }
-
 
     }
 }

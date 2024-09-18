@@ -5,7 +5,7 @@
 ///     <para>Do not assign SuspendedAt with code, because it's handled by the database.</para>
 ///     <para>ExpiresAt can be assigned through code.</para>
 /// </summary>
-public partial class Suspensions
+public partial class Suspension
 {
     public long SuspensionId { get; set; }
 
@@ -19,5 +19,5 @@ public partial class Suspensions
 
     public long? UserId { get; set; }
 
-    public virtual Users? User { get; set; }
+    public virtual User? User { get; set; }
 }

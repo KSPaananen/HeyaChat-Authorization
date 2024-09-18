@@ -1,7 +1,7 @@
-﻿using HeyaChat_Authorization.Repositories.Configuration.Interfaces;
+﻿using HeyaChat_Authorization.Repositories.Interfaces;
 using System.Text;
 
-namespace HeyaChat_Authorization.Repositories.Configuration
+namespace HeyaChat_Authorization.Repositories
 {
     public class ConfigurationRepository : IConfigurationRepository
     {

@@ -1,5 +1,5 @@
 ﻿using System;
-using HeyaChat_Authorization.Repositories.Configuration.Interfaces;
+using HeyaChat_Authorization.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
 namespace HeyaChat_Authorization.Models.Context;
@@ -18,23 +18,23 @@ public partial class AuthorizationDBContext : DbContext
         _repository = repository ?? throw new NullReferenceException(nameof(repository));
     }
 
-    public virtual DbSet<AuditLogs> AuditLogs { get; set; }
+    public virtual DbSet<AuditLog> AuditLogs { get; set; }
 
-    public virtual DbSet<BlockedCredentials> BlockedCredentials { get; set; }
+    public virtual DbSet<BlockedCredential> BlockedCredentials { get; set; }
 
-    public virtual DbSet<DeleteRequests> DeleteRequests { get; set; }
+    public virtual DbSet<DeleteRequest> DeleteRequests { get; set; }
 
-    public virtual DbSet<Devices> Devices { get; set; }
+    public virtual DbSet<Device> Devices { get; set; }
 
-    public virtual DbSet<Codes> Codes { get; set; }
+    public virtual DbSet<Codes> Codess { get; set; }
 
-    public virtual DbSet<Suspensions> Suspensions { get; set; }
+    public virtual DbSet<Suspension> Suspensions { get; set; }
 
-    public virtual DbSet<Tokens> Tokens { get; set; }
+    public virtual DbSet<Token> Tokens { get; set; }
 
-    public virtual DbSet<Users> Users { get; set; }
+    public virtual DbSet<User> Users { get; set; }
 
-    public virtual DbSet<UserDetails> UserDetails { get; set; }
+    public virtual DbSet<UserDetail> UserDetails { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
@@ -47,7 +47,7 @@ public partial class AuthorizationDBContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        modelBuilder.Entity<AuditLogs>(entity =>
+        modelBuilder.Entity<AuditLog>(entity =>
         {
             entity.HasKey(e => e.LogId).HasName("audit_logs_pkey");
 
@@ -70,7 +70,7 @@ public partial class AuthorizationDBContext : DbContext
                 .HasConstraintName("audit_logs_device_id_fkey");
         });
 
-        modelBuilder.Entity<BlockedCredentials>(entity =>
+        modelBuilder.Entity<BlockedCredential>(entity =>
         {
             entity.HasKey(e => e.BlockId).HasName("blocked_credentials_pkey");
 
@@ -87,7 +87,7 @@ public partial class AuthorizationDBContext : DbContext
                 .HasColumnName("phone");
         });
 
-        modelBuilder.Entity<DeleteRequests>(entity =>
+        modelBuilder.Entity<DeleteRequest>(entity =>
         {
             entity.HasKey(e => e.DeleteId).HasName("delete_requests_pkey");
 
@@ -109,7 +109,7 @@ public partial class AuthorizationDBContext : DbContext
                 .HasConstraintName("delete_requests_user_id_fkey");
         });
 
-        modelBuilder.Entity<Devices>(entity =>
+        modelBuilder.Entity<Device>(entity =>
         {
             entity.HasKey(e => e.DeviceId).HasName("devices_pkey");
 
@@ -138,7 +138,7 @@ public partial class AuthorizationDBContext : DbContext
 
         modelBuilder.Entity<Codes>(entity =>
         {
-            entity.HasKey(e => e.CodeId).HasName("mfa_codes_pkey");
+            entity.HasKey(e => e.CodeId).HasName("codes_pkey");
 
             entity.ToTable("codes");
 
@@ -160,7 +160,7 @@ public partial class AuthorizationDBContext : DbContext
                 .HasConstraintName("codes_user_id_fkey");
         });
 
-        modelBuilder.Entity<Suspensions>(entity =>
+        modelBuilder.Entity<Suspension>(entity =>
         {
             entity.HasKey(e => e.SuspensionId).HasName("suspensions_pkey");
 
@@ -185,7 +185,7 @@ public partial class AuthorizationDBContext : DbContext
                 .HasConstraintName("suspensions_user_id_fkey");
         });
 
-        modelBuilder.Entity<Tokens>(entity =>
+        modelBuilder.Entity<Token>(entity =>
         {
             entity.HasKey(e => e.TokenId).HasName("tokens_pkey");
 
@@ -209,7 +209,7 @@ public partial class AuthorizationDBContext : DbContext
                 .HasConstraintName("tokens_device_id_fkey");
         });
 
-        modelBuilder.Entity<Users>(entity =>
+        modelBuilder.Entity<User>(entity =>
         {
             entity.HasKey(e => e.UserId).HasName("users_pkey");
 
@@ -238,11 +238,11 @@ public partial class AuthorizationDBContext : DbContext
                 .HasColumnName("username");
         });
 
-        modelBuilder.Entity<UserDetails>(entity =>
+        modelBuilder.Entity<UserDetail>(entity =>
         {
-            entity
-                .HasNoKey()
-                .ToTable("user_details");
+            entity.HasKey(e => e.DetailId).HasName("user_details_pkey");
+
+            entity.ToTable("user_details");
 
             entity.HasIndex(e => e.UserId, "idx_user_details_user_id");
 

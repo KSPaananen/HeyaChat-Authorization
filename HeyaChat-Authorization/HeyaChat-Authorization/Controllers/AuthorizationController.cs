@@ -1,9 +1,7 @@
 ﻿using HeyaChat_Authorization.DataObjects.DRO;
 using HeyaChat_Authorization.Models;
 using HeyaChat_Authorization.Models.Context;
-using HeyaChat_Authorization.Repositories.Devices.Interfaces;
-using HeyaChat_Authorization.Repositories.UserDetails.Interfaces;
-using HeyaChat_Authorization.Repositories.Users.Interfaces;
+using HeyaChat_Authorization.Repositories.Interfaces;
 using HeyaChat_Authorization.Services.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -23,6 +21,7 @@ namespace HeyaChat_Authorization.Controllers
 
         private IHasherService _hasherService;
         private IEmailService _emailService;
+        private IJwtService _jwtService;
 
         private IUsersRepository _usersRepository;
         private IUserDetailsRepository _userDetailsRepository;
@@ -31,13 +30,14 @@ namespace HeyaChat_Authorization.Controllers
 
         public AuthorizationController(IConfiguration config, AuthorizationDBContext context, IUsersRepository usersRepository, 
             IUserDetailsRepository userDetailsRepository, IDevicesRepository devicesRepository,IHasherService hasherService,
-            IEmailService emailService)
+            IEmailService emailService, IJwtService jwtService)
         {
             _config = config ?? throw new NullReferenceException(nameof(config));
             _context = context ?? throw new NullReferenceException(nameof(context));
 
             _hasherService = hasherService ?? throw new NullReferenceException(nameof(hasherService));
             _emailService = emailService ?? throw new NullReferenceException(nameof(emailService));
+            _jwtService = jwtService ?? throw new NullReferenceException(nameof(jwtService));
 
             _usersRepository = usersRepository ?? throw new NullReferenceException(nameof(usersRepository));
             _userDetailsRepository = userDetailsRepository ?? throw new NullReferenceException(nameof(userDetailsRepository));
@@ -50,32 +50,32 @@ namespace HeyaChat_Authorization.Controllers
 
         [HttpPost]              // Returns
         [Route("Register")]     // 201: New user created    304: New user not created   500: Problems with the database
-        public IActionResult Register(RegisterDRO reDRO)
+        public IActionResult Register(RegisterDRO dro)
         {
             // Stop execution if username or email are found in database or RegisterDRO fails regex check
-            if (_usersRepository.DoesUserExist(reDRO.Username, reDRO.Email) || !usernameRgx.IsMatch(reDRO.Username) && !emailRgx.IsMatch(reDRO.Email) && !passwordRgx.IsMatch(reDRO.Password))
+            if (_usersRepository.DoesUserExist(dro.Username, dro.Email) || !usernameRgx.IsMatch(dro.Username) && !emailRgx.IsMatch(dro.Email) && !passwordRgx.IsMatch(dro.Password))
             {
                 return StatusCode(StatusCodes.Status304NotModified);
             }
 
             // Generate password salt and hash the password
             byte[] salt = _hasherService.GenerateSalt();
-            string hashedPassword = _hasherService.Hash(reDRO.Password, salt);
+            string hashedPassword = _hasherService.Hash(dro.Password, salt);
 
             // Create new user object and insert it to the DB
-            Users newUser = new Users
+            User newUser = new User
             {
-                Username = reDRO.Username,
+                Username = dro.Username,
                 PasswordHash = hashedPassword,
                 PasswordSalt = salt,
                 BiometricsKey = null,
-                Email = reDRO.Email,
+                Email = dro.Email,
             };
 
             long userId = _usersRepository.InsertUser(newUser);
 
             // Create a new userDetails object and insert it to the DB
-            UserDetails details = new UserDetails
+            UserDetail details = new UserDetail
             {
                 UserId = userId,
                 EmailVerified = false,
@@ -88,32 +88,34 @@ namespace HeyaChat_Authorization.Controllers
             long userDetailsId = _userDetailsRepository.InsertUserDetailsToTable(details);
 
             // Create new device object and insert it to the DB
-            Devices device = new Devices
+            Device device = new Device
             {
-                DeviceName = reDRO.DeviceName,
-                DeviceIdentifier = reDRO.DeviceIdentifier,
-                CountryTag = reDRO.CountryTag,
+                DeviceName = dro.Device.DeviceName,
+                DeviceIdentifier = dro.Device.DeviceIdentifier,
+                CountryTag = dro.Device.CountryTag,
                 // UsedAt is handled by the database
                 UserId = userId
             };
 
             long deviceId = _devicesRepository.InsertDeviceToTable(device);
 
-            // Stop execution and clear any previously created rows if any of the Id's are 0. This indicates a problem with inserting rows and/or database.
+            // Any of the Id's being 0 indicates a problem with the database, so to prevent "stuck" emails & usernames delete just created rows.
             if (userId <= 0 && userDetailsId <= 0 && deviceId <= 0)
             {
-                // Delete all previously inserted rows since there were problems with insertion.
+                // Delete recently added user. Delete cascades to other tables.
                 _usersRepository.DeleteUser(userId);
-                _userDetailsRepository.DeleteUserDetails(userDetailsId);
-                _devicesRepository.DeleteDevice(deviceId);
 
                 return StatusCode(StatusCodes.Status500InternalServerError);
             }
 
-            // Send verification email to verify users email address
-            _emailService.SendVerificationEmail(userId, reDRO.Email);
+            // Send verification email to verify users email. This method automatically saves code to database
+            //_emailService.SendVerificationEmail(userId, dro.Email);
 
-            // Don't generate a JWT here yet. We'll give it to the user after they've verified their email.
+            // Generate JWT with type "login". This method automatically adds token to DB
+            var token = _jwtService.GenerateToken(userId, deviceId, "login");
+
+            // Add token to Response header under Authorization
+            Response.Headers.Authorization = token;
 
             return StatusCode(StatusCodes.Status201Created);
         }
@@ -124,9 +126,20 @@ namespace HeyaChat_Authorization.Controllers
         {
             // If user logs in succesfully, but their email isnt verified, prompt them to verify email and only then give them a jwt
 
+            // When user logs in, check if any other devices have active tokens and disable them if more than 1 are found
             
 
             return StatusCode(StatusCodes.Status401Unauthorized);
+        }
+
+        [HttpPost]
+        [Route("PingBackend")]
+        public IActionResult PingBackend()
+        {
+            // Frontend will send token and here we verify if its still valid
+
+
+            return StatusCode(StatusCodes.Status200OK);
         }
 
 

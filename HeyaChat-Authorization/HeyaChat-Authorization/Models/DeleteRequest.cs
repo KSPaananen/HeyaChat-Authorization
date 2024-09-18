@@ -4,7 +4,7 @@
 ///     <para>Table for storing account deletion requests. Accounts are automatically deleted after set amount of days.</para>
 ///     <para>Do not assign DateRequested with code, because it's handled by the database.</para>
 /// </summary>
-public partial class DeleteRequests
+public partial class DeleteRequest
 {
     public long DeleteId { get; set; }
 
@@ -14,5 +14,5 @@ public partial class DeleteRequests
 
     public bool? Fulfilled { get; set; }
 
-    public virtual Users User { get; set; } = null!;
+    public virtual User User { get; set; } = null!;
 }

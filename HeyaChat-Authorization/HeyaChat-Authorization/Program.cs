@@ -1,14 +1,7 @@
+using HeyaChat_Authorization.Middleware;
 using HeyaChat_Authorization.Models.Context;
-using HeyaChat_Authorization.Repositories.Configuration;
-using HeyaChat_Authorization.Repositories.Configuration.Interfaces;
-using HeyaChat_Authorization.Repositories.Devices;
-using HeyaChat_Authorization.Repositories.Devices.Interfaces;
-using HeyaChat_Authorization.Repositories.MfaCodes;
-using HeyaChat_Authorization.Repositories.MfaCodes.Interfaces;
-using HeyaChat_Authorization.Repositories.UserDetails;
-using HeyaChat_Authorization.Repositories.UserDetails.Interfaces;
-using HeyaChat_Authorization.Repositories.Users;
-using HeyaChat_Authorization.Repositories.Users.Interfaces;
+using HeyaChat_Authorization.Repositories;
+using HeyaChat_Authorization.Repositories.Interfaces;
 using HeyaChat_Authorization.Services;
 using HeyaChat_Authorization.Services.Interfaces;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -95,6 +88,7 @@ builder.Services.AddScoped<IUsersRepository, UsersRepository>();
 builder.Services.AddScoped<IUserDetailsRepository, UserDetailsRepository>();
 builder.Services.AddScoped<IDevicesRepository, DevicesRepository>();
 builder.Services.AddScoped<ICodesRepository, CodesRepository>();
+builder.Services.AddScoped<ITokensRepository, TokensRepository>();
 
 // Define ports for enviroments
 if (builder.Environment.IsDevelopment())
@@ -119,6 +113,9 @@ else
 {
     app.UseCors("Production");
 }
+
+// Middlewares
+app.UseMiddleware<ExceptionHandlerMiddleware>();
 
 app.UseHttpsRedirection();
 app.UseAuthentication();

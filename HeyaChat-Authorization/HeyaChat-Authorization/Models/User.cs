@@ -3,7 +3,7 @@
 /// <summary>
 ///     <para>Table for storing users.</para>
 /// </summary>
-public partial class Users
+public partial class User
 {
     public long UserId { get; set; }
 
@@ -19,11 +19,11 @@ public partial class Users
 
     public string? Phone { get; set; }
 
-    public virtual ICollection<DeleteRequests> DeleteRequests { get; set; } = new List<DeleteRequests>();
+    public virtual ICollection<DeleteRequest> DeleteRequests { get; set; } = new List<DeleteRequest>();
 
-    public virtual ICollection<Devices> Devices { get; set; } = new List<Devices>();
+    public virtual ICollection<Device> Devices { get; set; } = new List<Device>();
 
     public virtual ICollection<Codes> MfaCodes { get; set; } = new List<Codes>();
 
-    public virtual ICollection<Suspensions> Suspensions { get; set; } = new List<Suspensions>();
+    public virtual ICollection<Suspension> Suspensions { get; set; } = new List<Suspension>();
 }

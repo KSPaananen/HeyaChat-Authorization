@@ -1,4 +1,6 @@
-﻿using HeyaChat_Authorization.Repositories.Configuration;
+﻿using HeyaChat_Authorization.DataObjects.DRO.SubClasses;
+using HeyaChat_Authorization.Models;
+using HeyaChat_Authorization.Repositories.Interfaces;
 using HeyaChat_Authorization.Services.Interfaces;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
@@ -9,33 +11,36 @@ namespace HeyaChat_Authorization.Services
 {
     public class JwtService : IJwtService
     {
-        private IConfiguration _config;
-        private ConfigurationRepository _repository;
+        private IConfigurationRepository _configurationRepository;
+        private ITokensRepository _tokensRepository;
 
-        public JwtService(IConfiguration config)
+        public JwtService(IConfigurationRepository configurationRepository, ITokensRepository tokensRepository)
         {
-            _config = config;
-            _repository = new ConfigurationRepository(_config);
+            _configurationRepository = configurationRepository ?? throw new NullReferenceException(nameof(configurationRepository));
+            _tokensRepository = tokensRepository ?? throw new NullReferenceException(nameof(tokensRepository));
         }
 
         // userID self explanatory
         // type defines what token can be used for. Types: "login" "password" "suspended"
-        public string GenerateToken(int userID, string type)
+        public string GenerateToken(long userId, long deviceId, string type)
         {
             // Get required values from repository for creating jwt
-            TimeSpan lifetime = _repository.GetTokenLifeTime();
-            byte[] signingKey = _repository.GetSigningKey();
-            string issuer = _repository.GetIssuer();
-            string audience = _repository.GetAudience();
+            TimeSpan lifetime = _configurationRepository.GetTokenLifeTime();
+            byte[] signingKey = _configurationRepository.GetSigningKey();
+            string issuer = _configurationRepository.GetIssuer();
+            string audience = _configurationRepository.GetAudience();
 
             // Encrypt userID & token type before appending to claims
-            string encryptedUserID = EncryptClaim(userID.ToString());
+            string encryptedUserID = EncryptClaim(userId.ToString());
             string encryptedType = EncryptClaim(type);
+
+            // Generate JTI (Json token identifier)
+            Guid jti = Guid.NewGuid();
 
             // Set claims
             List<Claim> claims = new List<Claim>()
             {
-                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()), // Tokens identifier
+                new Claim(JwtRegisteredClaimNames.Jti, jti.ToString()), // Tokens identifier
                 new Claim(JwtRegisteredClaimNames.Sub, encryptedUserID), // userID 
                 new Claim(JwtRegisteredClaimNames.Typ, encryptedType) // Token type
             };
@@ -55,7 +60,31 @@ namespace HeyaChat_Authorization.Services
 
             SecurityToken token = tokenHandler.CreateToken(tokenDesc);
 
+            // Create new Token object with generated jti and insert to DB
+            try
+            {
+                Token rowToken = new Token
+                {
+                    Identifier = jti,
+                    ExpiresAt = DateTime.UtcNow + lifetime,
+                    Active = true,
+                    DeviceId = deviceId,
+                };
+
+                _tokensRepository.InsertToken(rowToken);
+            }
+            catch (Exception ex)
+            {
+                // Log error here
+
+            }
+           
             return tokenHandler.WriteToken(token);
+        }
+
+        public long InvalidateToken()
+        {
+            throw new NotImplementedException();
         }
 
         public List<string> GetClaims(HttpRequest request)
@@ -74,13 +103,25 @@ namespace HeyaChat_Authorization.Services
                 token = token.Substring(token.IndexOf(" ") + 1);
             }
 
-            JwtSecurityToken securityToken = new JwtSecurityTokenHandler().ReadJwtToken(token);
+            JwtSecurityToken securityToken = new JwtSecurityToken();
+
+            try
+            {
+                securityToken = new JwtSecurityTokenHandler().ReadJwtToken(token);
+            }
+            catch
+            {
+                // Log error here
+
+                // Return empty list if token is empty
+                return new List<string>();
+            }
 
             // Get claims fron securityToken
             // https://datatracker.ietf.org/doc/html/rfc7519#section-4.1
             string jti = securityToken.Claims.Single(c => c.Type == "jti").ToString();
             string userID = securityToken.Claims.Single(c => c.Type == "sub").ToString();
-            string type = securityToken.Claims.Single(c => c.Type == "syp").ToString();
+            string type = securityToken.Claims.Single(c => c.Type == "typ").ToString();
 
             // Sanitize strings
             jti = jti.Substring(jti.IndexOf(" ") + 1);
@@ -90,9 +131,27 @@ namespace HeyaChat_Authorization.Services
             return new List<string> { jti, userID, type };
         }
 
+        public bool VerifyToken(Guid jti, UserDevice device)
+        {
+            try
+            {
+                // Check if valid token can be found with tokensrepository
+                bool isValid = _tokensRepository.IsTokenValid(jti, device);
+
+                return isValid;
+            }
+            catch (Exception ex)
+            {
+                // Log error here
+
+
+                return false;
+            }
+        }
+
         private string EncryptClaim(string value)
         {
-            byte[] key = _repository.GetEncryptionKey();
+            byte[] key = _configurationRepository.GetEncryptionKey();
 
             using (Aes aesAlg = Aes.Create())
             {
@@ -102,7 +161,7 @@ namespace HeyaChat_Authorization.Services
                 var encryptor = aesAlg.CreateEncryptor(aesAlg.Key, aesAlg.IV);
                 using (var msEncrypt = new MemoryStream())
                 {
-                    msEncrypt.Write(aesAlg.IV, 0, aesAlg.IV.Length); // Prepend IV
+                    msEncrypt.Write(aesAlg.IV, 0, aesAlg.IV.Length);
                     using (var csEncrypt = new CryptoStream(msEncrypt, encryptor, CryptoStreamMode.Write))
                     {
                         using (var swEncrypt = new StreamWriter(csEncrypt))
@@ -114,7 +173,6 @@ namespace HeyaChat_Authorization.Services
                 }
             }
         }
-
 
     }
 }

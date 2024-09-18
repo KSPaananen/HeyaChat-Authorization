@@ -1,8 +1,8 @@
-﻿using HeyaChat_Authorization.Repositories.UserDetails.Interfaces;
-using HeyaChat_Authorization.Models;
+﻿using HeyaChat_Authorization.Models;
 using HeyaChat_Authorization.Models.Context;
+using HeyaChat_Authorization.Repositories.Interfaces;
 
-namespace HeyaChat_Authorization.Repositories.UserDetails
+namespace HeyaChat_Authorization.Repositories
 {
     /// <summary>
     ///     <para>This table is indexed with UserId.</para>
@@ -16,11 +16,7 @@ namespace HeyaChat_Authorization.Repositories.UserDetails
             _context = context ?? throw new NullReferenceException(nameof(context));
         }
 
-        /// <summary>
-        ///     Insert a new row to user_details table.
-        /// </summary>
-        /// <returns>UserId of the created row. 0 if row could not be inserted.</returns>
-        public long InsertUserDetailsToTable(Models.UserDetails details)
+        public long InsertUserDetailsToTable(UserDetail details)
         {
             try
             {
@@ -29,9 +25,9 @@ namespace HeyaChat_Authorization.Repositories.UserDetails
 
                 return details.UserId;
             }
-            catch
+            catch (Exception ex)
             {
-                return 0;
+                throw new Exception(ex.Message);
             }
         }
 
@@ -53,9 +49,9 @@ namespace HeyaChat_Authorization.Repositories.UserDetails
 
                 return false;
             }
-            catch
+            catch (Exception ex)
             {
-                return false;
+                throw new Exception(ex.Message);
             }
         }
 

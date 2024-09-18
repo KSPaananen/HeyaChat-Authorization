@@ -4,7 +4,7 @@
 ///     <para>Table which stores logs of user actions such as email changes, new logins etc...</para>
 ///     <para>Do not assign PerformedAt with code, because it's handled by the database.</para>
 /// </summary>
-public partial class AuditLogs
+public partial class AuditLog
 {
     public long LogId { get; set; }
 
@@ -14,5 +14,5 @@ public partial class AuditLogs
 
     public long? DeviceId { get; set; }
 
-    public virtual Devices? Device { get; set; }
+    public virtual Device? Device { get; set; }
 }

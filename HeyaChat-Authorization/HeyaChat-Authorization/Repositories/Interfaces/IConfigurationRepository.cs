@@ -1,4 +1,4 @@
-﻿namespace HeyaChat_Authorization.Repositories.Configuration.Interfaces
+﻿namespace HeyaChat_Authorization.Repositories.Interfaces
 {
     public interface IConfigurationRepository
     {

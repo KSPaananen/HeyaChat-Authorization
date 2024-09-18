@@ -16,5 +16,5 @@ public partial class Codes
 
     public long? UserId { get; set; }
 
-    public virtual Users? User { get; set; }
+    public virtual User? User { get; set; }
 }
