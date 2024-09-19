@@ -43,20 +43,15 @@ namespace HeyaChat_Authorization.Repositories
             }
         }
 
-        public bool IsCodeValid(long userId, string code)
+        public Codes IsCodeValid(long userId, string code)
         {
             try
             {
-                int count = (from codes in _context.Codess
-                              where codes.UserId == userId && codes.Code == code && codes.Used == false && codes.ExpiresAt > DateTime.UtcNow
-                              select codes).Count();
+                Codes result = (from codes in _context.Codess
+                             where codes.UserId == userId && codes.Code == code && codes.Used == false && codes.ExpiresAt > DateTime.UtcNow
+                             select codes).FirstOrDefault() ?? new Codes();
 
-                if (count > 0)
-                {
-                    return true;
-                }
-
-                return false;
+                return result;
             }
             catch (Exception ex)
             {

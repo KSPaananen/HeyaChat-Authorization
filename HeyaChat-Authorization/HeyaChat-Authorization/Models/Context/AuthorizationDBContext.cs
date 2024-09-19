@@ -6,16 +6,16 @@ namespace HeyaChat_Authorization.Models.Context;
 
 public partial class AuthorizationDBContext : DbContext
 {
-    private IConfigurationRepository _repository;
+    private IConfigurationRepository _configurationRepository;
 
     public AuthorizationDBContext()
     {
         
     }
 
-    public AuthorizationDBContext(IConfigurationRepository repository, DbContextOptions<AuthorizationDBContext> options) : base(options)
+    public AuthorizationDBContext(IConfigurationRepository configurationRepository, DbContextOptions<AuthorizationDBContext> options) : base(options)
     {
-        _repository = repository ?? throw new NullReferenceException(nameof(repository));
+        _configurationRepository = configurationRepository ?? throw new NullReferenceException(nameof(configurationRepository));
     }
 
     public virtual DbSet<AuditLog> AuditLogs { get; set; }
@@ -38,7 +38,7 @@ public partial class AuthorizationDBContext : DbContext
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
-        optionsBuilder.UseNpgsql(_repository.GetConnectionString(), builder =>
+        optionsBuilder.UseNpgsql(_configurationRepository.GetConnectionString(), builder =>
         {
             builder.EnableRetryOnFailure(5, TimeSpan.FromSeconds(5), null);
         });

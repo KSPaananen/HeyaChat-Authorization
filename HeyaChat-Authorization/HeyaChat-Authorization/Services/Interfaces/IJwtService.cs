@@ -6,11 +6,13 @@ namespace HeyaChat_Authorization.Services.Interfaces
     {
         string GenerateToken(long userId, long deviceId, string type);
 
-        long InvalidateToken();
+        string RenewToken(long userId, long deviceId, string type, Guid oldJti);
 
-        (Guid, long, string) GetClaims(HttpRequest request);
+        long InvalidateToken(Guid identifier);
 
-        bool VerifyToken(Guid jti, UserDevice device);
+        (bool isValid, bool expiresSoon) VerifyToken(Guid jti, UserDevice device);
+
+        (Guid jti, long userId, string type) GetClaims(HttpRequest request);
 
         string EncryptClaim(string value);
 

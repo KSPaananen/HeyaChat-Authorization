@@ -73,12 +73,51 @@ namespace HeyaChat_Authorization.Services
             return tokenHandler.WriteToken(token);
         }
 
-        public long InvalidateToken()
+        public string RenewToken(long userId, long deviceId, string type, Guid oldJti)
         {
-            throw new NotImplementedException();
+            // Invalidate old token with identifier
+            long result = InvalidateToken(oldJti);
+
+            // Generate a new token to user if Invalidation was succesful
+            if (result > 0)
+            {
+                string newToken = GenerateToken(userId, deviceId, type);
+
+                return newToken;
+            }
+
+            return "";
         }
 
-        public (Guid, long, string) GetClaims(HttpRequest request)
+        public long InvalidateToken(Guid identifier)
+        {
+            long result = _tokensRepository.InvalidateToken(identifier);
+
+            return result;
+        }
+
+        public (bool isValid, bool expiresSoon) VerifyToken(Guid jti, UserDevice device)
+        {
+            // IsTokenValid will either return row of the valid token or new object
+            Token token = _tokensRepository.IsTokenValid(jti, device);
+
+            if (token.TokenId != 0)
+            {
+                TimeSpan renewtime = _configurationRepository.GetTokenRenewTime();
+
+                // If token is about to expire, let next layer know they need to renew their token
+                if (token.ExpiresAt < DateTime.UtcNow + renewtime && token.ExpiresAt > DateTime.UtcNow)
+                {
+                    return (isValid: true, expiresSoon: true);
+                }
+
+                return (isValid: true, expiresSoon: false);
+            }
+
+            return (isValid: false, expiresSoon: false);
+        }
+
+        public (Guid jti, long userId, string type) GetClaims(HttpRequest request)
         {
             // Get token from authorization header
             string token = request.Headers.Authorization.ToString();
@@ -111,14 +150,7 @@ namespace HeyaChat_Authorization.Services
             Guid convJti = Guid.Parse(jti);
             long convUserId = long.Parse(decryptedUserId);
 
-            return (convJti, convUserId, decryptedType);
-        }
-
-        public bool VerifyToken(Guid jti, UserDevice device)
-        {
-            bool isValid = _tokensRepository.IsTokenValid(jti, device);
-
-            return isValid;
+            return (jti: convJti, userId: convUserId, type: decryptedType);
         }
 
         public string EncryptClaim(string value)

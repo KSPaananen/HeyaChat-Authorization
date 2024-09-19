@@ -16,6 +16,22 @@ namespace HeyaChat_Authorization.Repositories
             _context = context ?? throw new NullReferenceException(nameof(context));
         }
 
+        public Device GetDeviceWithUUID(Guid UUID)
+        {
+            try
+            {
+                Device result = (from device in _context.Devices
+                              where device.DeviceIdentifier == UUID
+                              select device).FirstOrDefault() ?? new Device();
+
+                return result;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
+        }
+
         public long InsertDevice(Device device)
         {
             try

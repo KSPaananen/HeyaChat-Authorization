@@ -1,4 +1,5 @@
 ﻿using HeyaChat_Authorization.Repositories.Interfaces;
+using System;
 using System.Text;
 
 namespace HeyaChat_Authorization.Repositories
@@ -24,7 +25,22 @@ namespace HeyaChat_Authorization.Repositories
                 return result;
             }
 
-            throw new FormatException($"Unable to read lifetime in jwt from configuration.");
+            throw new NullReferenceException($"Unable to read lifetime in jwt from configuration.");
+        }
+
+        public TimeSpan GetTokenRenewTime()
+        {
+            if (_config == null)
+            {
+                throw new NullReferenceException("Configuration is null.");
+            }
+
+            if (TimeSpan.TryParse(_config.GetSection("jwt:renewtime").Value, out TimeSpan result))
+            {
+                return result;
+            }
+
+            throw new NullReferenceException($"Unable to read renewtime in jwt from configuration.");
         }
 
         public byte[] GetSigningKey()
@@ -41,7 +57,7 @@ namespace HeyaChat_Authorization.Repositories
                 return result;
             }
 
-            throw new FormatException($"Unable to read signingkey in jwt from configuration.");
+            throw new NullReferenceException($"Unable to read signingkey in jwt from configuration.");
         }
 
         public string GetIssuer()
@@ -58,7 +74,7 @@ namespace HeyaChat_Authorization.Repositories
                 return result;
             }
 
-            throw new FormatException($"Unable to read issuer in jwt from configuration.");
+            throw new NullReferenceException($"Unable to read issuer in jwt from configuration.");
         }
 
         public string GetAudience()
@@ -75,7 +91,7 @@ namespace HeyaChat_Authorization.Repositories
                 return result;
             }
 
-            throw new FormatException($"Unable to read issuer in jwt from configuration.");
+            throw new NullReferenceException($"Unable to read issuer in jwt from configuration.");
         }
 
         public byte[] GetEncryptionKey()
@@ -85,14 +101,14 @@ namespace HeyaChat_Authorization.Repositories
                 throw new NullReferenceException("Configuration is null.");
             }
 
-            byte[] result = Encoding.UTF8.GetBytes(_config.GetSection($"jwt:encryptionkey").Value!);
+            byte[] result = Encoding.UTF8.GetBytes(_config.GetSection($"encryption:key").Value!);
 
             if (result.Length > 0)
             {
                 return result;
             }
 
-            throw new FormatException($"Unable to read encryption key in jwt from configuration.");
+            throw new NullReferenceException($"Unable to read key in encryption from configuration.");
         }
 
         public string GetConnectionString()
@@ -110,7 +126,7 @@ namespace HeyaChat_Authorization.Repositories
                 return result;
             }
 
-            throw new FormatException($"Unable to read connection string in connectionstrings from configuration.");
+            throw new NullReferenceException($"Unable to read connection string in connectionstrings from configuration.");
         }
 
         public string GetEmailSender()
@@ -127,7 +143,7 @@ namespace HeyaChat_Authorization.Repositories
                 return result;
             }
 
-            throw new FormatException($"Unable to read sender in emailService from configuration.");
+            throw new NullReferenceException($"Unable to read sender in emailService from configuration.");
         }
 
         public string GetEmailPassword()
@@ -144,7 +160,7 @@ namespace HeyaChat_Authorization.Repositories
                 return result;
             }
 
-            throw new FormatException($"Unable to read password in emailService from configuration.");
+            throw new NullReferenceException($"Unable to read password in emailService from configuration.");
         }
 
         public string GetEmailHost()
@@ -161,7 +177,7 @@ namespace HeyaChat_Authorization.Repositories
                 return result;
             }
 
-            throw new FormatException($"Unable to read host in emailService from configuration.");
+            throw new NullReferenceException($"Unable to read host in emailService from configuration.");
         }
 
         public int GetEmailPort()
@@ -178,7 +194,7 @@ namespace HeyaChat_Authorization.Repositories
                 return int.Parse(result);
             }
 
-            throw new FormatException($"Unable to read port in emailService from configuration.");
+            throw new NullReferenceException($"Unable to read port in emailService from configuration.");
         }
 
         public TimeSpan GetCodeLifeTime()
@@ -195,7 +211,7 @@ namespace HeyaChat_Authorization.Repositories
                 return TimeSpan.Parse(result);
             }
 
-            throw new FormatException($"Unable to read lifetime in codesfrom configuration.");
+            throw new NullReferenceException($"Unable to read lifetime in codesfrom configuration.");
         }
     }
 }

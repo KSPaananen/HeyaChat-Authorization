@@ -29,12 +29,12 @@ namespace HeyaChat_Authorization.Repositories
             }
         }
 
-        public long InvalidateToken(Token token)
+        public long InvalidateToken(Guid identifier)
         {
             try
             {
                 var result = (from tokens in _context.Tokens
-                              where tokens.Identifier == token.Identifier
+                              where tokens.Identifier == identifier
                               select tokens).FirstOrDefault() ?? null;
 
                 if (result != null)
@@ -53,21 +53,21 @@ namespace HeyaChat_Authorization.Repositories
             }
         }
 
-        public bool IsTokenValid(Guid jti, UserDevice deviceDetails)
+        public Token IsTokenValid(Guid jti, UserDevice deviceDetails)
         {
             try
             {
-                int tokenCount = (from device in _context.Devices
+                var result = (from device in _context.Devices
                                   join token in _context.Tokens on device.DeviceId equals token.DeviceId
                                   where device.DeviceIdentifier == deviceDetails.DeviceIdentifier && token.Identifier == jti && token.ExpiresAt > DateTime.UtcNow && token.Active == true
-                                  select token).Count();
+                                  select token).FirstOrDefault() ?? null;
 
-                if (tokenCount > 0)
+                if (result != null)
                 {
-                    return true;
+                    return result;
                 }
 
-                return false;
+                return new Token();
             }
             catch (Exception ex)
             {

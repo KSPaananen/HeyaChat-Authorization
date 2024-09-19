@@ -1,5 +1,6 @@
 ﻿using HeyaChat_Authorization.DataObjects.DRO.SubClasses;
 using HeyaChat_Authorization.Models;
+using HeyaChat_Authorization.Repositories.Interfaces;
 using HeyaChat_Authorization.Services.Interfaces;
 using Microsoft.Extensions.DependencyInjection;
 using System;
@@ -9,7 +10,7 @@ using System.Text.Json;
 namespace HeyaChat_Authorization.Middleware
 {
     /// <summary>
-    ///     <para>This middleware will automatically check validity authorization header.</para>
+    ///     <para>This middleware will automatically check validity of the authorization header.</para>
     /// </summary>
     public class AuthorizeHeaderMiddleware
     {
@@ -68,14 +69,25 @@ namespace HeyaChat_Authorization.Middleware
                     var claims = _jwtService.GetClaims(context.Request);
 
                     Guid jti = claims.Item1;
+                    long userId = claims.Item2;
                     string type = claims.Item3;
 
-                    // Check if jti in token is valid
-                    bool jtiValid = _jwtService.VerifyToken(jti, userDevice);
+                    // Check if jti in token is valid. VerifyToken will automatically renew token if its below set renew time.
+                    var tokenResults = _jwtService.VerifyToken(jti, userDevice);
 
-                    // Proceed to next middleware if token was valid. Throw AccessViolation since no active jti was found with users device, thus they're logged out
-                    if (jtiValid)
+                    // Proceed to next middleware if token was valid. Throw AccessViolation if no active jti was found with users device, thus they're logged out
+                    if (tokenResults.isValid)
                     {
+                        // Check if token is about to expire, renew if true
+                        if (tokenResults.expiresSoon)
+                        {
+                            // Get DeviceId to renew the token
+                            IDevicesRepository _deviceRepository = serviceProvider.GetRequiredService<IDevicesRepository>();
+                            var result = _deviceRepository.GetDeviceWithUUID(userDevice.DeviceIdentifier);
+
+                            context.Response.Headers.Authorization = _jwtService.RenewToken(userId, result.DeviceId, type, jti);
+                        }
+
                         await _requestDel(context);
                     }
                     else

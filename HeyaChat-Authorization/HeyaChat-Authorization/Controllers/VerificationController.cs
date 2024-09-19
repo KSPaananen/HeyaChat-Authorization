@@ -1,5 +1,6 @@
 ﻿using HeyaChat_Authorization.AuthorizeAttributes;
 using HeyaChat_Authorization.DataObjects.DRO;
+using HeyaChat_Authorization.Models;
 using HeyaChat_Authorization.Repositories.Interfaces;
 using HeyaChat_Authorization.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
@@ -33,10 +34,10 @@ namespace HeyaChat_Authorization.Controllers
             long userId = _jwtService.GetClaims(Request).Item2;
 
             // Query database if code is valid and associated with the user
-            bool codeValid = _codesRepository.IsCodeValid(userId, dro.Code);
+            Codes result = _codesRepository.IsCodeValid(userId, dro.Code);
 
             // End execution if code isn't valid
-            if (codeValid == false)
+            if (result.CodeId == 0)
             {
                 return StatusCode(StatusCodes.Status304NotModified);
             }

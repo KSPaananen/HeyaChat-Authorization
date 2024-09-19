@@ -4,6 +4,8 @@
     {
         TimeSpan GetTokenLifeTime();
 
+        TimeSpan GetTokenRenewTime();
+
         byte[] GetSigningKey();
 
         string GetIssuer();

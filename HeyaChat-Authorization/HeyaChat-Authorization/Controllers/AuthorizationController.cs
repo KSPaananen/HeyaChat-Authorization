@@ -102,7 +102,7 @@ namespace HeyaChat_Authorization.Controllers
             }
 
             // Send verification email to verify users email. This method automatically saves code to database
-            _emailService.SendVerificationEmail(userId, dro.Email);
+            //_emailService.SendVerificationEmail(userId, dro.Email);
 
             // Generate JWT with type "login". This method automatically adds token to DB
             var token = _jwtService.GenerateToken(userId, deviceId, "login");
@@ -117,6 +117,7 @@ namespace HeyaChat_Authorization.Controllers
         [Route("Login")]
         public IActionResult Login()
         {
+
             // If user logs in succesfully, but their email isnt verified, prompt them to verify email and only then give them a jwt
 
             // When user logs in, check if any other devices have active tokens and disable them if more than 1 are found
@@ -129,8 +130,7 @@ namespace HeyaChat_Authorization.Controllers
         [Route("PingBackend")]
         public IActionResult PingBackend()
         {
-            // Frontend will send token and here we verify if its still valid
-
+            // Jwt and jti verification is handled at middleware, so we can just return 200 OK if request reaches this method.
 
             return StatusCode(StatusCodes.Status200OK);
         }

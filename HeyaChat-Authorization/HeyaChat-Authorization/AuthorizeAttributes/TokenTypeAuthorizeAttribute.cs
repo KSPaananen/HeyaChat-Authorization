@@ -41,7 +41,7 @@ namespace HeyaChat_Authorization.AuthorizeAttributes
                     string decryptedType = jwtService.DecryptClaim(type);
 
                     // Check if the type claim is one of the allowed types
-                    if (type == null || !_typeArray.Contains(decryptedType))
+                    if (decryptedType == null || !_typeArray.Contains(decryptedType))
                     {
                         context.Result = new ForbidResult();
                     }

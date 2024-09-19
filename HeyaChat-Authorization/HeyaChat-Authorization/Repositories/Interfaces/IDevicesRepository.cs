@@ -4,6 +4,7 @@ namespace HeyaChat_Authorization.Repositories.Interfaces
 {
     public interface IDevicesRepository
     {
+        Device GetDeviceWithUUID(Guid UUID);
         // Returns ID of a created row
         long InsertDevice(Device device);
 
