@@ -130,11 +130,10 @@ namespace HeyaChat_Authorization.Controllers
         [Route("PingBackend")]
         public IActionResult PingBackend()
         {
-            // Jwt and jti verification is handled at middleware, so we can just return 200 OK if request reaches this method.
+            // All token related verifying is handled at middleware so just return 200
 
             return StatusCode(StatusCodes.Status200OK);
         }
-
 
 
     }
