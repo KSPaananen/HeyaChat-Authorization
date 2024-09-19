@@ -16,9 +16,6 @@ namespace HeyaChat_Authorization.Controllers
     [ApiController]
     public class AuthorizationController : ControllerBase
     {
-        private IConfiguration _config;
-        private AuthorizationDBContext _context;
-
         private IHasherService _hasherService;
         private IEmailService _emailService;
         private IJwtService _jwtService;
@@ -28,13 +25,9 @@ namespace HeyaChat_Authorization.Controllers
         private IDevicesRepository _devicesRepository;
         
 
-        public AuthorizationController(IConfiguration config, AuthorizationDBContext context, IUsersRepository usersRepository, 
-            IUserDetailsRepository userDetailsRepository, IDevicesRepository devicesRepository,IHasherService hasherService,
-            IEmailService emailService, IJwtService jwtService)
+        public AuthorizationController(IUsersRepository usersRepository, IUserDetailsRepository userDetailsRepository, IDevicesRepository devicesRepository, 
+            IHasherService hasherService, IEmailService emailService, IJwtService jwtService)
         {
-            _config = config ?? throw new NullReferenceException(nameof(config));
-            _context = context ?? throw new NullReferenceException(nameof(context));
-
             _hasherService = hasherService ?? throw new NullReferenceException(nameof(hasherService));
             _emailService = emailService ?? throw new NullReferenceException(nameof(emailService));
             _jwtService = jwtService ?? throw new NullReferenceException(nameof(jwtService));

@@ -42,5 +42,27 @@ namespace HeyaChat_Authorization.Repositories
                 throw new Exception(ex.Message);
             }
         }
+
+        public bool IsCodeValid(long userId, string code)
+        {
+            try
+            {
+                int count = (from codes in _context.Codess
+                              where codes.UserId == userId && codes.Code == code && codes.Used == false && codes.ExpiresAt > DateTime.UtcNow
+                              select codes).Count();
+
+                if (count > 0)
+                {
+                    return true;
+                }
+
+                return false;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
+        }
+
     }
 }

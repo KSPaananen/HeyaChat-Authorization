@@ -1,4 +1,6 @@
-﻿using HeyaChat_Authorization.DataObjects.DRO;
+﻿using HeyaChat_Authorization.AuthorizeAttributes;
+using HeyaChat_Authorization.DataObjects.DRO;
+using HeyaChat_Authorization.Repositories.Interfaces;
 using HeyaChat_Authorization.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -11,39 +13,44 @@ namespace HeyaChat_Authorization.Controllers
     {
         private IJwtService _jwtService;
 
-        public VerificationController(IJwtService jwtService)
+        private ICodesRepository _codesRepository;
+        private IUserDetailsRepository _userDetailsRepository;
+
+        public VerificationController(IJwtService jwtService, ICodesRepository codesRepository, IUserDetailsRepository userDetailsRepository)
         {
             _jwtService = jwtService ?? throw new ArgumentNullException(nameof(jwtService));
+
+            _codesRepository = codesRepository ?? throw new ArgumentNullException(nameof(codesRepository));
+            _userDetailsRepository = userDetailsRepository ?? throw new ArgumentNullException(nameof(userDetailsRepository));
         }
 
-        [HttpPost, Authorize]   // Returns
-        [Route("VerifyEmail")]  // 200: Verification succesful    400: Bad token
-        public IActionResult VerifyEmail(VerifyEmailDRO dro)
+        [HttpPost, Authorize]   
+        [TokenTypeAuthorize("login")]   // Returns
+        [Route("VerifyEmail")]          // 200: Verification succesful      304: Incorrect code     500: Problems with the database
+        public IActionResult VerifyEmail(VerifyDRO dro)
         {
-            // Get claims from Authorization header
-            List<string> claims = _jwtService.GetClaims(Request);
+            // Get userId from token
+            long userId = _jwtService.GetClaims(Request).Item2;
 
-            Guid jti = Guid.Parse(claims[0]);
-            long userId = long.Parse(claims[1]);
-            string type = claims[2];
+            // Query database if code is valid and associated with the user
+            bool codeValid = _codesRepository.IsCodeValid(userId, dro.Code);
 
-            // Check if Authorization headers token is valid
-            bool isValid = _jwtService.VerifyToken(jti, dro.Device);
-            
-            if (isValid == false)
+            // End execution if code isn't valid
+            if (codeValid == false)
             {
-                return StatusCode(StatusCodes.Status400BadRequest);
+                return StatusCode(StatusCodes.Status304NotModified);
             }
 
-            // Try finding 
+            // Update email verified column in userDetails
+            long rowId = _userDetailsRepository.UpdateEmailVerified(userId);
 
+            // rowId being 0 indicates a problem with updating the row
+            if (rowId > 0)
+            {
+                return StatusCode(StatusCodes.Status201Created);
+            }
 
-
-            
-
-
-
-            return StatusCode(StatusCodes.Status200OK);
+            return StatusCode(StatusCodes.Status500InternalServerError);
         }
 
 

@@ -2,7 +2,7 @@
 
 namespace HeyaChat_Authorization.DataObjects.DRO
 {
-    public class VerifyEmailDRO
+    public class VerifyDRO
     {
         public string Code { get; set; } = null!;
 

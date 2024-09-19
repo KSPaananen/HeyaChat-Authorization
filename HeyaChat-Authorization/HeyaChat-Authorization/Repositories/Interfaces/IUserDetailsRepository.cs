@@ -9,8 +9,11 @@ namespace HeyaChat_Authorization.Repositories.Interfaces
         // Returns ID of a created row
         long InsertUserDetails(UserDetail details);
 
-        // Returns ID of a created row
+        // Returns ID of the updated row
         long UpdateUserDetails(UserDetail details);
+
+        // Returs ID of the updated row
+        long UpdateEmailVerified(long userId);
 
         // Returns boolean based on if deletion was succesful
         bool DeleteUserDetails(long id);

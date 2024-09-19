@@ -102,10 +102,6 @@ else
 
 var app = builder.Build();
 
-// Middlewares
-app.UseMiddleware<ExceptionHandlerMiddleware>();
-
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -116,6 +112,9 @@ else
 {
     app.UseCors("Production");
 }
+
+app.UseMiddleware<ExceptionHandlerMiddleware>();
+app.UseMiddleware<AuthorizeHeaderMiddleware>();
 
 app.UseHttpsRedirection();
 app.UseAuthentication();

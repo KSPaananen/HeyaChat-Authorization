@@ -78,15 +78,10 @@ namespace HeyaChat_Authorization.Services
             throw new NotImplementedException();
         }
 
-        public List<string> GetClaims(HttpRequest request)
+        public (Guid, long, string) GetClaims(HttpRequest request)
         {
             // Get token from authorization header
-            string token = "";
-
-            if (request.Headers.Authorization.ToString() != "")
-            {
-                token = request.Headers.Authorization.ToString();
-            }
+            string token = request.Headers.Authorization.ToString();
 
             // Sanitize token string
             if (token.ToLower().Contains("bearer"))
@@ -96,30 +91,27 @@ namespace HeyaChat_Authorization.Services
 
             JwtSecurityToken securityToken = new JwtSecurityToken();
 
-            try
-            {
-                securityToken = new JwtSecurityTokenHandler().ReadJwtToken(token);
-            }
-            catch
-            {
-                // Log error here
+            securityToken = new JwtSecurityTokenHandler().ReadJwtToken(token);
 
-                // Return empty list if token is empty
-                return new List<string>();
-            }
-
-            // Get claims fron securityToken
-            // https://datatracker.ietf.org/doc/html/rfc7519#section-4.1
+            // Get claims fron securityToken. Check https://datatracker.ietf.org/doc/html/rfc7519#section-4.1
             string jti = securityToken.Claims.Single(c => c.Type == "jti").ToString();
-            string userID = securityToken.Claims.Single(c => c.Type == "sub").ToString();
+            string userId = securityToken.Claims.Single(c => c.Type == "sub").ToString();
             string type = securityToken.Claims.Single(c => c.Type == "typ").ToString();
 
-            // Sanitize strings
+            // Clean up strings because now they are like "jti: ?oalbdw=fssd134"
             jti = jti.Substring(jti.IndexOf(" ") + 1);
-            userID = userID.Substring(userID.IndexOf(" ") + 1);
+            userId = userId.Substring(userId.IndexOf(" ") + 1);
             type = type.Substring(type.IndexOf(" ") + 1);
 
-            return new List<string> { jti, userID, type };
+            // Decrypt values
+            string decryptedUserId = DecryptClaim(userId);
+            string decryptedType = DecryptClaim(type);
+
+            // Convert claims to their right types
+            Guid convJti = Guid.Parse(jti);
+            long convUserId = long.Parse(decryptedUserId);
+
+            return (convJti, convUserId, decryptedType);
         }
 
         public bool VerifyToken(Guid jti, UserDevice device)
@@ -129,7 +121,7 @@ namespace HeyaChat_Authorization.Services
             return isValid;
         }
 
-        private string EncryptClaim(string value)
+        public string EncryptClaim(string value)
         {
             byte[] key = _configurationRepository.GetEncryptionKey();
 
@@ -150,6 +142,36 @@ namespace HeyaChat_Authorization.Services
                         }
                     }
                     return Convert.ToBase64String(msEncrypt.ToArray());
+                }
+            }
+        }
+
+        public string DecryptClaim(string value)
+        {
+            byte[] key = _configurationRepository.GetEncryptionKey();
+            byte[] cipherTextCombined = Convert.FromBase64String(value);
+
+            using (Aes aesAlg = Aes.Create())
+            {
+                aesAlg.Key = key;
+
+                byte[] iv = new byte[aesAlg.BlockSize / 8];
+                Array.Copy(cipherTextCombined, iv, iv.Length);
+                aesAlg.IV = iv;
+
+                byte[] cipherText = new byte[cipherTextCombined.Length - iv.Length];
+                Array.Copy(cipherTextCombined, iv.Length, cipherText, 0, cipherText.Length);
+
+                var decryptor = aesAlg.CreateDecryptor(aesAlg.Key, aesAlg.IV);
+                using (var msDecrypt = new MemoryStream(cipherText))
+                {
+                    using (var csDecrypt = new CryptoStream(msDecrypt, decryptor, CryptoStreamMode.Read))
+                    {
+                        using (var srDecrypt = new StreamReader(csDecrypt))
+                        {
+                            return srDecrypt.ReadToEnd();
+                        }
+                    }
                 }
             }
         }

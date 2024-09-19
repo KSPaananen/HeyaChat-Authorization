@@ -71,6 +71,30 @@ namespace HeyaChat_Authorization.Repositories
             }
         }
 
+        public long UpdateEmailVerified(long userId)
+        {
+            try
+            {
+                var result = (from details in _context.UserDetails
+                              where details.UserId == userId
+                              select details).FirstOrDefault() ?? null;
+
+                if (result != null)
+                {
+                    result.EmailVerified = true;
+                    _context.SaveChanges();
+
+                    return result.DetailId;
+                }
+
+                return 0;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
+        }
+
         public bool DeleteUserDetails(long userId)
         {
             try

@@ -4,5 +4,7 @@
     {
         // Returns ID of a created row
         long InsertCode(long userId, string code);
+
+        bool IsCodeValid(long userId, string code);
     }
 }
