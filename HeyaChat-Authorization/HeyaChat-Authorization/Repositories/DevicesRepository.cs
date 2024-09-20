@@ -47,6 +47,32 @@ namespace HeyaChat_Authorization.Repositories
             }
         }
 
+        public long InsertOrUpdateDevice(Device device)
+        {
+            try
+            {
+                // See if device exists
+                var resultDevice = GetDeviceWithUUID(device.DeviceIdentifier);
+
+                // Update if already exists or create a new row
+                if (resultDevice.DeviceId > 0)
+                {
+                    long updatedId = UpdateDevice(resultDevice);
+
+                    return updatedId;
+                }
+                else
+                {
+                    long insertedId = InsertDevice(device);
+                    return insertedId;
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
+        }
+
         public long UpdateDevice(Device device)
         {
             try
@@ -57,7 +83,9 @@ namespace HeyaChat_Authorization.Repositories
 
                 if (result != null)
                 {
-                    result = device;
+                    result.DeviceName = device.DeviceName;
+                    result.DeviceIdentifier = device.DeviceIdentifier;
+                    result.CountryTag = device.CountryTag;
                     _context.SaveChanges();
 
                     return result.DeviceId;

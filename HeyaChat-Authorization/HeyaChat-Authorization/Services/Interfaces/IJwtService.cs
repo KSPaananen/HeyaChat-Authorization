@@ -10,6 +10,8 @@ namespace HeyaChat_Authorization.Services.Interfaces
 
         long InvalidateToken(Guid identifier);
 
+        void InvalidateAllTokens(long userId);
+
         (bool isValid, bool expiresSoon) VerifyToken(Guid jti, UserDevice device);
 
         (Guid jti, long userId, string type) GetClaims(HttpRequest request);

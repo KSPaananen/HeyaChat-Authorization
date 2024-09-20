@@ -38,9 +38,9 @@ namespace HeyaChat_Authorization.Middleware
                     // Read claims from Request
                     var claims = _jwtService.GetClaims(context.Request);
 
-                    Guid jti = claims.Item1;
-                    long userId = claims.Item2;
-                    string type = claims.Item3;
+                    Guid jti = claims.jti;
+                    long userId = claims.userId;
+                    string type = claims.type;
 
                     // Check if jti in token is valid. VerifyToken will automatically renew token if its below set renew time.
                     var tokenResults = _jwtService.VerifyToken(jti, userDevice);

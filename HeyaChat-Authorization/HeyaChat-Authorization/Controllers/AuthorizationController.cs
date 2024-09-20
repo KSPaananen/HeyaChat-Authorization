@@ -1,11 +1,9 @@
-﻿using HeyaChat_Authorization.DataObjects.DRO;
+﻿using HeyaChat_Authorization.AuthorizeAttributes;
+using HeyaChat_Authorization.DataObjects.DRO;
 using HeyaChat_Authorization.Models;
-using HeyaChat_Authorization.Models.Context;
 using HeyaChat_Authorization.Repositories.Interfaces;
 using HeyaChat_Authorization.Services.Interfaces;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using System.Text.RegularExpressions;
 
 // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
@@ -41,8 +39,8 @@ namespace HeyaChat_Authorization.Controllers
         private Regex emailRgx = new Regex(@"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$");
         private Regex passwordRgx = new Regex(@"^.{8,}$");
 
-        [HttpPost]              // Returns
-        [Route("Register")]     // 201: New user created    304: New user not created   500: Problems with the database
+        [HttpPost]                      // Returns
+        [Route("Register")]             // 201: New user created    304: New user not created   500: Problems with the database
         public IActionResult Register(RegisterDRO dro)
         {
             // Stop execution if username or email are found in database or RegisterDRO fails regex check
@@ -102,7 +100,7 @@ namespace HeyaChat_Authorization.Controllers
             }
 
             // Send verification email to verify users email. This method automatically saves code to database
-            //_emailService.SendVerificationEmail(userId, dro.Email);
+            _emailService.SendVerificationEmail(userId, dro.Email);
 
             // Generate JWT with type "login". This method automatically adds token to DB
             var token = _jwtService.GenerateToken(userId, deviceId, "login");
@@ -113,21 +111,65 @@ namespace HeyaChat_Authorization.Controllers
             return StatusCode(StatusCodes.Status201Created);
         }
 
-        [HttpPost]
-        [Route("Login")]
-        public IActionResult Login()
+        [HttpPost]                      // Returns
+        [Route("Login")]                // 200: Login succesful     202: Login succesful, but email isn't verified      401: Login unsuccesful
+        public IActionResult Login(LoginDRO dro)
         {
+            User userObj = _usersRepository.GetUserByUsernameOrEmail(dro.Login);
 
-            // If user logs in succesfully, but their email isnt verified, prompt them to verify email and only then give them a jwt
+            if (userObj.UserId <= 0)
+            {
+                return StatusCode(StatusCodes.Status401Unauthorized);
+            }
 
-            // When user logs in, check if any other devices have active tokens and disable them if more than 1 are found
-            
+            // Hash the password from dro with salt from user object and see if they match
+            byte[] salt = userObj.PasswordSalt;
+
+            var droHashedPassword = _hasherService.Hash(dro.Password, salt);
+
+            // Check login mathces either username or email and passwordhash
+            if (droHashedPassword == userObj.PasswordHash && dro.Login == userObj.Username || dro.Login == userObj.Email)
+            {
+                // After succesful login invalid tokens for other devices to enforce only one device online policy
+                _jwtService.InvalidateAllTokens(userObj.UserId);
+
+                // Add users current device to database if it doesn't exist there or get DeviceId of already saved device
+                Device device = new Device
+                {
+                    DeviceName = dro.Device.DeviceName,
+                    DeviceIdentifier = dro.Device.DeviceIdentifier,
+                    CountryTag = dro.Device.CountryTag,
+                    // UsedAt is handled by the database
+                    UserId = userObj.UserId
+                };
+
+                // Insert new device to db or update already existing
+                long deviceId = _devicesRepository.InsertOrUpdateDevice(device);
+
+                // Generate a token for current device and add it to authorization header
+                string token = _jwtService.GenerateToken(userObj.UserId, deviceId, "login");
+
+                Response.Headers.Authorization = token;
+
+                // Send statuscode according to email verification status
+                UserDetail userDetails = _userDetailsRepository.GetUserDetailsByUserId(userObj.UserId);
+
+                if (userDetails.EmailVerified)
+                {
+                    return StatusCode(StatusCodes.Status200OK);
+                }
+                else
+                {
+                    return StatusCode(StatusCodes.Status202Accepted);
+                }
+            }
 
             return StatusCode(StatusCodes.Status401Unauthorized);
         }
 
         [HttpPost]
-        [Route("PingBackend")]
+        [TokenTypeAuthorize("login")]   // Returns
+        [Route("PingBackend")]          // 200: User still logged in
         public IActionResult PingBackend()
         {
             // All token related verifying is handled at middleware so just return 200

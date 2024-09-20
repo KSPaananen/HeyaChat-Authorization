@@ -4,7 +4,7 @@
     {
         public string DeviceName { get; set; } = null!;
 
-        public Guid DeviceIdentifier { get; set; } = new Guid();
+        public Guid DeviceIdentifier { get; set; }
 
         public string CountryTag { get; set; } = null!;
     }

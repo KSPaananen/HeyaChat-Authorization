@@ -53,6 +53,28 @@ namespace HeyaChat_Authorization.Repositories
             }
         }
 
+        public void InvalidateAllTokens(long userId)
+        {
+            try
+            {
+                var results = (from devices in _context.Devices
+                               join tokens in _context.Tokens on devices.DeviceId equals tokens.DeviceId
+                               where devices.UserId == userId && tokens.DeviceId == devices.DeviceId && tokens.Active == true
+                               select tokens).ToArray();
+
+                foreach (var items in results)
+                {
+                    items.Active = false;
+                }
+
+                _context.SaveChanges();
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
+        }
+
         public Token IsTokenValid(Guid jti, UserDevice deviceDetails)
         {
             try

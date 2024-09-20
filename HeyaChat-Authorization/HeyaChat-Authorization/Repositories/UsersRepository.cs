@@ -32,6 +32,22 @@ namespace HeyaChat_Authorization.Repositories
             }
         }
 
+        public User GetUserByUsernameOrEmail(string field)
+        {
+            try
+            {
+                var result = (from user in _context.Users
+                              where user.Username == field ||user.Email == field
+                              select user).SingleOrDefault() ?? new User();
+
+                return result;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
+        }
+
         public long InsertUser(User newUser)
         {
             try
@@ -114,5 +130,25 @@ namespace HeyaChat_Authorization.Repositories
             }
         }
 
+        public bool IsLoginValid(string login, string passwordHash)
+        {
+            try
+            {
+                var count = (from user in _context.Users
+                             where user.Username == login || user.Email == login &&  user.PasswordHash == passwordHash
+                             select user).Count();
+
+                if (count > 0)
+                {
+                    return true;
+                }
+
+                return false;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
+        }
     }
 }

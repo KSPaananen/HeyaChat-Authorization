@@ -7,7 +7,7 @@ public partial class UserDetail
 {
     public long DetailId { get; set; }
 
-    public bool? EmailVerified { get; set; }
+    public bool EmailVerified { get; set; }
 
     public bool? PhoneVerified { get; set; }
 

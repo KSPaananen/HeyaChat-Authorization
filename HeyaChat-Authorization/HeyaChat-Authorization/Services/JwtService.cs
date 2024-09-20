@@ -96,6 +96,11 @@ namespace HeyaChat_Authorization.Services
             return result;
         }
 
+        public void InvalidateAllTokens(long userId)
+        {
+            _tokensRepository.InvalidateAllTokens(userId);
+        }
+
         public (bool isValid, bool expiresSoon) VerifyToken(Guid jti, UserDevice device)
         {
             // IsTokenValid will either return row of the valid token or new object

@@ -1,6 +1,4 @@
-﻿using HeyaChat_Authorization.DataObjects.DRO;
-using HeyaChat_Authorization.Models;
-using Microsoft.AspNetCore.Mvc;
+﻿using HeyaChat_Authorization.Models;
 
 namespace HeyaChat_Authorization.Repositories.Interfaces
 {
@@ -8,6 +6,9 @@ namespace HeyaChat_Authorization.Repositories.Interfaces
     {
         // Returns user object found with ID
         User GetUserByUserID(long userID);
+
+        // Returns user object found with 
+        User GetUserByUsernameOrEmail(string field);
 
         // Returns ID of the created row
         long InsertUser(User newUser);
@@ -18,8 +19,11 @@ namespace HeyaChat_Authorization.Repositories.Interfaces
         // Returns boolean based on if deletion was succesful
         void DeleteUser(long userID);
 
-        // Returns boolean based on if row can be found
+        // Returns boolean based on if a row can be found
         bool DoesUserExist(string username, string email);
+
+        // Returns boolean based on if a row can be found
+        bool IsLoginValid(string login, string passwordHash);
 
     }
 }
