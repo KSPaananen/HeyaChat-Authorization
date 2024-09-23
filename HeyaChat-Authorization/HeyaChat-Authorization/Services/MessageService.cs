@@ -1,4 +1,5 @@
-﻿using HeyaChat_Authorization.Repositories.Interfaces;
+﻿using HeyaChat_Authorization.Models;
+using HeyaChat_Authorization.Repositories.Interfaces;
 using HeyaChat_Authorization.Services.Interfaces;
 using System.Net;
 using System.Net.Mail;
@@ -50,7 +51,15 @@ namespace HeyaChat_Authorization.Services
             string code = GenerateCode();
 
             // Store code to DB
-            long codeId = _codesRepository.InsertCode(userId, code);
+            Codes newCode = new Codes
+            {
+                Code = code,
+                ExpiresAt = DateTime.UtcNow + _configurationRepository.GetCodeLifeTime(),
+                Used = false,
+                UserId = userId,
+            };
+
+            long codeId = _codesRepository.InsertCode(newCode);
 
             // Set subject
             string subject = "Here's your account recovery code!";
@@ -87,10 +96,18 @@ namespace HeyaChat_Authorization.Services
             string code = GenerateCode();
 
             // Store code to DB
-            long codeId = _codesRepository.InsertCode(userId, code);
+            Codes newCode = new Codes
+            {
+                Code = code,
+                ExpiresAt = DateTime.UtcNow + _configurationRepository.GetCodeLifeTime(),
+                Used = false,
+                UserId = userId,
+            };
+
+            long codeId = _codesRepository.InsertCode(newCode);
 
             // Set subject
-            string subject = "Here's your email verification code!";
+            string subject = "Here's your verification code!";
 
             // Read html file to string
             string htmlBody = File.ReadAllText($"{_folderPath}/VerificationEmail.html");

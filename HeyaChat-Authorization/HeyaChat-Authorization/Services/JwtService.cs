@@ -91,9 +91,14 @@ namespace HeyaChat_Authorization.Services
 
         public long InvalidateToken(Guid identifier)
         {
-            long result = _tokensRepository.InvalidateToken(identifier);
+            // Find token from database, Set active to false and save changes
+            Token token = _tokensRepository.GetTokenByGuid(identifier);
 
-            return result;
+            token.Active = false;
+
+            long affectedRowId = _tokensRepository.UpdateToken(token);
+
+            return affectedRowId;
         }
 
         public void InvalidateAllTokens(long userId)

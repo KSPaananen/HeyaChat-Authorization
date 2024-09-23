@@ -4,11 +4,16 @@ namespace HeyaChat_Authorization.Repositories.Interfaces
 {
     public interface ICodesRepository
     {
+        // Returns object of the found row
+        Codes GetCodeByUserId(long userId);
+
+        // Returns code object found with userId and code valid expiration timespan
+        Codes GetValidCodeWithUserIdAndCode(long userId, string code);
+
         // Returns ID of a created row
-        long InsertCode(long userId, string code);
+        long InsertCode(Codes code);
 
-        Codes IsCodeValid(long userId, string code);
-
-        long MarkCodeAsUsed(long codeId);
+        // Returns ID of the affected row
+        long UpdateCode(Codes code);
     }
 }

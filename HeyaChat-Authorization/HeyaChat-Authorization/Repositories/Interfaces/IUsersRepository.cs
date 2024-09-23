@@ -4,11 +4,13 @@ namespace HeyaChat_Authorization.Repositories.Interfaces
 {
     public interface IUsersRepository
     {
-        // Returns user object found with ID
+        // Returns user object found with Id
         User GetUserByUserID(long userId);
 
-        // Returns user object found with 
+        // Returns user object found with either username or email
         User GetUserByUsernameOrEmail(string field);
+
+        User GetUserByLoginDetails(string login, byte[] biometricsKey);
 
         // Returns ID of the created row
         long InsertUser(User newUser);
@@ -16,20 +18,11 @@ namespace HeyaChat_Authorization.Repositories.Interfaces
         // Returns ID of the updated row
         long UpdateUser(User updatedUser);
 
-        // Returns ID of the updated row
-        long UpdateUsersPasswordAndSalt(long userId, string passwordHash, byte[] passwordSalt);
+        // Returns void
+        void DeleteUser(long userId);
 
-        // Returns boolean based on if deletion was succesful
-        void DeleteUser(long userID);
-
-        // Returns boolean based on if a row can be found
-        bool DoesUserExist(string username, string email);
-
-        // Returns boolean based on if a row can be found
-        bool IsLoginValid(string login, string passwordHash);
-
-        // Returns boolean based on if a row can be found
-        bool IsBiometricsLoginValid(byte[] biometrics);
+        // Returns true if user already exists or email is blocked from creating another account
+        bool UserExistsOrBlocked(string username, string email);
 
     }
 }

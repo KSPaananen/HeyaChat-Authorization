@@ -2,7 +2,6 @@
 using HeyaChat_Authorization.Models.Context;
 using HeyaChat_Authorization.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
-using System.Text;
 
 namespace HeyaChat_Authorization.Repositories
 {
@@ -50,6 +49,22 @@ namespace HeyaChat_Authorization.Repositories
             }
         }
 
+        public User GetUserByLoginDetails(string login, byte[] biometricsKey)
+        {
+            try
+            {
+                var result = (from user in _context.Users
+                              where user.Username == login || user.Email == login || user.BiometricsKey == biometricsKey
+                              select user).SingleOrDefault() ?? new User();
+
+                return result;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
+        }
+
         public long InsertUser(User newUser)
         {
             try
@@ -69,19 +84,16 @@ namespace HeyaChat_Authorization.Repositories
         {
             try
             {
-                var result = (from user in _context.Users
-                              where user.UserId == updatedUser.UserId
-                              select user).SingleOrDefault() ?? null;
+                _context.Attach(updatedUser);
+                _context.Entry(updatedUser).State = EntityState.Modified;
+                int affectedRows = _context.SaveChanges();
 
-                if (result != null)
+                if (affectedRows <= 0)
                 {
-                    result = updatedUser;
-                    _context.SaveChanges();
-
-                    return result.UserId;
+                    throw new Exception($"User with the ID {updatedUser.UserId} could not be updated.");
                 }
 
-                return 0;
+                return updatedUser.UserId;
             }
             catch (Exception ex)
             {
@@ -89,26 +101,12 @@ namespace HeyaChat_Authorization.Repositories
             }
         }
 
-        public long UpdateUsersPasswordAndSalt(long userId, string passwordHash, byte[] passwordSalt)
-        {
-            try
-            {
-                FormattableString sql = $"UPDATE Users SET password_hash = {passwordHash} AND password_salt = {passwordSalt} WHERE user_id = {userId} RETURNING user_id";
-
-                return _context.Database.SqlQuery<long>(sql).FirstOrDefault();
-            }
-            catch (Exception ex)
-            {
-                throw new Exception(ex.Message);
-            }
-        }
-
-        public void DeleteUser(long userID)
+        public void DeleteUser(long userId)
         {
             try
             {
                 var result = (from user in _context.Users
-                              where user.UserId == userID
+                              where user.UserId == userId
                               select user).SingleOrDefault() ?? null;
 
                 if (result != null)
@@ -117,7 +115,7 @@ namespace HeyaChat_Authorization.Repositories
                     _context.SaveChanges();
                 }
 
-                throw new Exception("Could not find user with provided userId.");
+                throw new Exception("Could not delete user found with provided userId.");
             }
             catch (Exception ex)
             {
@@ -125,15 +123,17 @@ namespace HeyaChat_Authorization.Repositories
             }
         }
 
-        public bool DoesUserExist(string username, string email)
+        public bool UserExistsOrBlocked(string username, string email)
         {
             try
             {
-                int userCount = (from user in _context.Users
-                                 where user.Username == username || user.Email == email
-                                 select user).Count();
+                // Try finding rows from users and blocked credentials. Return true if found
+                int result = (from user in _context.Users
+                              join blockedCred in _context.BlockedCredentials on user.Email equals blockedCred.Email
+                              where user.Username == username || user.Email == email || blockedCred.Email == email
+                              select user).Count();
 
-                if (userCount > 0)
+                if (result > 0)
                 {
                     return true;
                 }
@@ -146,46 +146,6 @@ namespace HeyaChat_Authorization.Repositories
             }
         }
 
-        public bool IsLoginValid(string login, string passwordHash)
-        {
-            try
-            {
-                var count = (from user in _context.Users
-                             where user.Username == login || user.Email == login && user.PasswordHash == passwordHash
-                             select user).Count();
 
-                if (count > 0)
-                {
-                    return true;
-                }
-
-                return false;
-            }
-            catch (Exception ex)
-            {
-                throw new Exception(ex.Message);
-            }
-        }
-
-        public bool IsBiometricsLoginValid(byte[] biometrics)
-        {
-            try
-            {
-                string sql = $"SELECT COUNT(*) FROM users WHERE biometrics_key = {biometrics}";
-
-                int count = _context.Database.ExecuteSqlRaw(sql);
-
-                if (count > 0)
-                {
-                    return true;
-                }
-
-                return false;
-            }
-            catch (Exception ex)
-            {
-                throw new Exception(ex.Message);
-            }
-        }
     }
 }

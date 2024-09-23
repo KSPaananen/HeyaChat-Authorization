@@ -1,6 +1,7 @@
 ﻿using HeyaChat_Authorization.Models;
 using HeyaChat_Authorization.Models.Context;
 using HeyaChat_Authorization.Repositories.Interfaces;
+using Microsoft.EntityFrameworkCore;
 
 namespace HeyaChat_Authorization.Repositories
 {
@@ -51,43 +52,16 @@ namespace HeyaChat_Authorization.Repositories
         {
             try
             {
-                var result = (from details in _context.UserDetails
-                              where details.DetailId == detail.DetailId
-                              select details).FirstOrDefault() ?? null;
+                _context.Attach(detail);
+                _context.Entry(detail).State = EntityState.Modified;
+                int affectedRows = _context.SaveChanges();
 
-                if (result != null)
+                if (affectedRows <= 0)
                 {
-                    result = detail;
-                    _context.SaveChanges();
-
-                    return result.DetailId;
+                    throw new Exception($"User details with the ID {detail.DetailId} could not be updated.");
                 }
 
-                return 0;
-            }
-            catch (Exception ex)
-            {
-                throw new Exception(ex.Message);
-            }
-        }
-
-        public long UpdateEmailVerified(long userId)
-        {
-            try
-            {
-                var result = (from details in _context.UserDetails
-                              where details.UserId == userId
-                              select details).FirstOrDefault() ?? null;
-
-                if (result != null)
-                {
-                    result.EmailVerified = true;
-                    _context.SaveChanges();
-
-                    return result.DetailId;
-                }
-
-                return 0;
+                return detail.DetailId;
             }
             catch (Exception ex)
             {
@@ -118,6 +92,7 @@ namespace HeyaChat_Authorization.Repositories
                 throw new Exception(ex.Message);
             }
         }
+
 
     }
 }

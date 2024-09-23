@@ -1,4 +1,5 @@
-﻿using HeyaChat_Authorization.Models.Context;
+﻿using HeyaChat_Authorization.Models;
+using HeyaChat_Authorization.Models.Context;
 using HeyaChat_Authorization.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
@@ -29,9 +30,17 @@ namespace HeyaChat_Authorization.Repositories
                         break;
                 }
 
-                FormattableString sql = $"INSERT INTO audit_logs VALUES (performed_action, device_id) VALUES ({action}, {deviceId})";
+                AuditLog log = new AuditLog
+                {
+                    PerformedAction = action,
+                    // PerformedAt is handled by the database
+                    DeviceId = deviceId,
+                };
 
-                return _context.Database.SqlQuery<long>(sql).FirstOrDefault();
+                _context.AuditLogs.Add(log);
+                _context.SaveChanges();
+
+                return log.LogId;
             }
             catch (Exception ex)
             {

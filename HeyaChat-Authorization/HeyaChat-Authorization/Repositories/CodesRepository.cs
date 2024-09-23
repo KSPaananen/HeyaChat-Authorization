@@ -1,6 +1,7 @@
 ﻿using HeyaChat_Authorization.Models;
 using HeyaChat_Authorization.Models.Context;
 using HeyaChat_Authorization.Repositories.Interfaces;
+using Microsoft.EntityFrameworkCore;
 
 namespace HeyaChat_Authorization.Repositories
 {
@@ -10,46 +11,19 @@ namespace HeyaChat_Authorization.Repositories
     public class CodesRepository : ICodesRepository
     {
         private AuthorizationDBContext _context;
-        private IConfigurationRepository _configurationRepository;
 
-        public CodesRepository(AuthorizationDBContext context, IConfigurationRepository configurationRepository)
+        public CodesRepository(AuthorizationDBContext context)
         {
             _context = context ?? throw new NullReferenceException(nameof(context));
-            _configurationRepository = configurationRepository ?? throw new NullReferenceException(nameof(configurationRepository));
         }
 
-        public long InsertCode(long userId, string code)
+        public Codes GetCodeByUserId(long userId)
         {
             try
             {
-                TimeSpan lifetime = _configurationRepository.GetCodeLifeTime();
-
-                Codes newCode = new Codes
-                {
-                    Code = code,
-                    ExpiresAt = DateTime.UtcNow + lifetime,
-                    Used = false,
-                    UserId = userId,
-                };
-
-                _context.Codess.Add(newCode);
-                _context.SaveChanges();
-
-                return newCode.CodeId;
-            }
-            catch (Exception ex)
-            {
-                throw new Exception(ex.Message);
-            }
-        }
-
-        public Codes IsCodeValid(long userId, string code)
-        {
-            try
-            {
-                Codes result = (from codes in _context.Codess
-                             where codes.UserId == userId && codes.Code == code && codes.Used == false && codes.ExpiresAt > DateTime.UtcNow
-                             select codes).FirstOrDefault() ?? new Codes();
+                var result = (from code in _context.Codess
+                             where code.UserId == userId && code.ExpiresAt > DateTime.UtcNow
+                             select code).FirstOrDefault() ?? new Codes();
 
                 return result;
             }
@@ -59,23 +33,51 @@ namespace HeyaChat_Authorization.Repositories
             }
         }
 
-        public long MarkCodeAsUsed(long codeId)
+        public Codes GetValidCodeWithUserIdAndCode(long userId, string code)
         {
             try
             {
-                var result = (from code in _context.Codess
-                               where code.CodeId == codeId
-                               select code).FirstOrDefault() ?? null;
+                Codes result = (from codes in _context.Codess
+                                where codes.UserId == userId && codes.Code == code && codes.Used == false && codes.ExpiresAt > DateTime.UtcNow
+                                select codes).FirstOrDefault() ?? new Codes();
 
-                if (result != null)
+                return result;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
+        }
+
+        public long InsertCode(Codes code)
+        {
+            try
+            {
+                _context.Codess.Add(code);
+                _context.SaveChanges();
+
+                return code.CodeId;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
+        }
+
+        public long UpdateCode(Codes code)
+        {
+            try
+            {
+                _context.Attach(code);
+                _context.Entry(code).State = EntityState.Modified;
+                int affectedRows = _context.SaveChanges();
+
+                if (affectedRows <= 0)
                 {
-                    result.Used = true;
-                    _context.SaveChanges();
-
-                    return result.CodeId;
+                    throw new Exception($"Code with the ID {code.CodeId} could not be updated.");
                 }
 
-                return 0;
+                return code.CodeId;
             }
             catch (Exception ex)
             {

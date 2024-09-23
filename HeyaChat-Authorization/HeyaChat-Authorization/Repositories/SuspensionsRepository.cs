@@ -17,9 +17,9 @@ namespace HeyaChat_Authorization.Repositories
         {
             try
             {
-                string sql = $"SELECT COUNT(*) FROM suspensions WHERE (expires_at IS NULL OR expires_at > CURRENT_TIMESTAMP) AND lifted_at IS NULL AND user_id = {userId}";
-
-                int count = _context.Database.ExecuteSqlRaw(sql);
+                int count = (from suspension in _context.Suspensions
+                            where (suspension.ExpiresAt > DateTime.UtcNow || suspension.ExpiresAt == null) && suspension.LiftedAt == null && suspension.UserId == userId
+                            select suspension).Count();
 
                 if (count > 0)
                 {
@@ -27,7 +27,6 @@ namespace HeyaChat_Authorization.Repositories
                 }
 
                 return false;
-                
             }
             catch (Exception ex)
             {

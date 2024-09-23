@@ -45,8 +45,8 @@ namespace HeyaChat_Authorization.Controllers
         // Returns
         //
         [HttpPost, Authorize]
-        [TokenTypeAuthorize("login")]   
-        [Route("ChangeUsername")]           
+        [TokenTypeAuthorize("login")]
+        [Route("ChangeUsername")]
         public IActionResult ChangeUsername()
         {
             return StatusCode(StatusCodes.Status501NotImplemented);
@@ -55,18 +55,18 @@ namespace HeyaChat_Authorization.Controllers
         // Returns
         //
         [HttpPost, Authorize]
-        [TokenTypeAuthorize("login")]    
-        [Route("ChangeEmail")]          
+        [TokenTypeAuthorize("login")]
+        [Route("ChangeEmail")]
         public IActionResult ChangeEmail()
         {
             return StatusCode(StatusCodes.Status501NotImplemented);
         }
 
         // Returns
-        //
+        // 201: Password changed    500: Problems saving changes to database
         [HttpPost, Authorize]
-        [TokenTypeAuthorize("password")]    
-        [Route("ChangePassword")]           
+        [TokenTypeAuthorize("password")]
+        [Route("ChangePassword")]
         public IActionResult ChangePassword(PasswordChangeDRO dro)
         {
             // Get userId from token
@@ -76,8 +76,18 @@ namespace HeyaChat_Authorization.Controllers
             byte[] salt = _hasherService.GenerateSalt();
             string passwordHash = _hasherService.Hash(dro.Password, salt);
 
-            // Update users passwordhash and salt
-            long updatedUserId = _usersRepository.UpdateUsersPasswordAndSalt(userId, passwordHash, salt);
+            // Get user from database and update passwordHash and salt
+            User foundUser = _usersRepository.GetUserByUserID(userId);
+
+            foundUser.PasswordHash = passwordHash;
+            foundUser.PasswordSalt = salt;
+
+            long updatedUserId = _usersRepository.UpdateUser(foundUser);
+
+            if (updatedUserId <= 0)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError);
+            }
 
             // Get user device for audit logging
             Device device = _devicesRepository.GetDeviceWithUUID(dro.Device.DeviceIdentifier);
@@ -97,12 +107,11 @@ namespace HeyaChat_Authorization.Controllers
         [Route("DeleteAccount")]
         public IActionResult DeleteAccount()
         {
-            long userId = _jwtService.GetClaims(Request).userId;
+            // Create delete request and wait 60 days
 
-            _usersRepository.DeleteUser(userId);
-
-            return StatusCode(StatusCodes.Status201Created);
+            return StatusCode(StatusCodes.Status501NotImplemented);
         }
+
 
     }
 }

@@ -2,6 +2,7 @@
 using HeyaChat_Authorization.Models;
 using HeyaChat_Authorization.Models.Context;
 using HeyaChat_Authorization.Repositories.Interfaces;
+using Microsoft.EntityFrameworkCore;
 
 namespace HeyaChat_Authorization.Repositories
 {
@@ -12,6 +13,22 @@ namespace HeyaChat_Authorization.Repositories
         public TokensRepository(AuthorizationDBContext context)
         {
             _context = context ?? throw new NullReferenceException(nameof(context));
+        }
+
+        public Token GetTokenByGuid(Guid identifier)
+        {
+            try
+            {
+                var result = (from tokens in _context.Tokens
+                              where tokens.Identifier == identifier
+                              select tokens).FirstOrDefault() ?? new Token();
+
+                return result;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
         }
 
         public long InsertToken(Token token)
@@ -29,23 +46,20 @@ namespace HeyaChat_Authorization.Repositories
             }
         }
 
-        public long InvalidateToken(Guid identifier)
+        public long UpdateToken(Token token)
         {
             try
             {
-                var result = (from tokens in _context.Tokens
-                              where tokens.Identifier == identifier
-                              select tokens).FirstOrDefault() ?? null;
+                _context.Attach(token);
+                _context.Entry(token).State = EntityState.Modified;
+                int affectedRows = _context.SaveChanges();
 
-                if (result != null)
+                if (affectedRows <= 0)
                 {
-                    result.Active = false;
-                    _context.SaveChanges();
-
-                    return result.TokenId;
+                    throw new Exception($"Token with the ID {token.TokenId} could not be updated.");
                 }
 
-                return 0;
+                return token.TokenId;
             }
             catch (Exception ex)
             {
@@ -96,5 +110,7 @@ namespace HeyaChat_Authorization.Repositories
                 throw new Exception(ex.Message);
             }
         }
+
+
     }
 }

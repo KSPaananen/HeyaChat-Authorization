@@ -1,6 +1,7 @@
 ﻿using HeyaChat_Authorization.Models;
 using HeyaChat_Authorization.Models.Context;
 using HeyaChat_Authorization.Repositories.Interfaces;
+using Microsoft.EntityFrameworkCore;
 
 namespace HeyaChat_Authorization.Repositories
 {
@@ -74,21 +75,16 @@ namespace HeyaChat_Authorization.Repositories
         {
             try
             {
-                var result = (from devices in _context.Devices
-                              where devices.DeviceId == device.DeviceId
-                              select devices).FirstOrDefault() ?? null;
+                _context.Attach(device);
+                _context.Entry(device).State = EntityState.Modified;
+                int affectedRows = _context.SaveChanges();
 
-                if (result != null)
+                if (affectedRows <= 0)
                 {
-                    result.DeviceName = device.DeviceName;
-                    result.DeviceIdentifier = device.DeviceIdentifier;
-                    result.CountryTag = device.CountryTag;
-                    _context.SaveChanges();
-
-                    return result.DeviceId;
+                    throw new Exception($"User with the ID {device.DeviceId} could not be updated.");
                 }
 
-                return 0;
+                return device.DeviceId;
             }
             catch (Exception ex)
             {

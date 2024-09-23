@@ -44,13 +44,13 @@ namespace HeyaChat_Authorization.Controllers
         private Regex passwordRgx = new Regex(@"^.{8,}$");
 
         // Returns
-        // 201: New user registered     304: New user not registered    500: Database problems
-        [HttpPost]                      
-        [Route("Register")]             
+        // 201: New user registered     304: Username and/or email in use or blocked   500: Database problems
+        [HttpPost]
+        [Route("Register")]
         public IActionResult Register(RegisterDRO dro)
         {
-            // Stop execution if username or email are found in database or RegisterDRO fails regex check
-            bool doesExist = _usersRepository.DoesUserExist(dro.Username, dro.Email);
+            // Make sure username and email aren't already in use or blocked from creating new accounts
+            bool doesExist = _usersRepository.UserExistsOrBlocked(dro.Username, dro.Email);
 
             if (doesExist || !usernameRgx.IsMatch(dro.Username) && !emailRgx.IsMatch(dro.Email) && !passwordRgx.IsMatch(dro.Password))
             {
@@ -124,30 +124,24 @@ namespace HeyaChat_Authorization.Controllers
         // 200: Login succesful     202: MFA verification required      206: Login succesful, email unverified
         // 401: Lgin unsuccesful    403: User suspended
         [HttpPost]
-        [Route("Login")]   
+        [Route("Login")]
         public IActionResult Login(LoginDRO dro)
         {
-            User user = _usersRepository.GetUserByUsernameOrEmail(dro.Login);
+            User user = _usersRepository.GetUserByLoginDetails(dro.Login, dro.BiometricsKey);
 
-            // Perform login based on the type of login. Credentials or biometrics
-            if (dro.Login == "" && dro.Password == "")
+            // UserId will be 0 if user with details cannot be found
+            if (user.UserId <= 0)
             {
-                bool isValid = _usersRepository.IsBiometricsLoginValid(dro.BiometricsKey);
-
-                if (!isValid)
-                {
-                    return StatusCode(StatusCodes.Status401Unauthorized);
-                }
+                return StatusCode(StatusCodes.Status401Unauthorized);
             }
-            else
-            {
-                // Hash the password from dro with salt from the user object and see if they match
-                var requestHashedPassword = _hasherService.Hash(dro.Password, user.PasswordSalt);
 
-                if (requestHashedPassword != user.PasswordHash)
-                {
-                    return StatusCode(StatusCodes.Status401Unauthorized);
-                }
+            // Hash the password from dro with salt from the user object and see if they match
+            var droPasswordHash = _hasherService.Hash(dro.Password, user.PasswordSalt);
+
+            // Check that login details match
+            if (droPasswordHash != user.PasswordHash || (dro.BiometricsKey != null && dro.BiometricsKey != user.BiometricsKey))
+            {
+                return StatusCode(StatusCodes.Status401Unauthorized);
             }
 
             // Check if user is currently suspended

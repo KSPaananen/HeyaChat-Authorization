@@ -39,26 +39,31 @@ namespace HeyaChat_Authorization.Controllers
             long userId = _jwtService.GetClaims(Request).userId;
 
             // Query database if code is valid and associated with the user
-            Codes result = _codesRepository.IsCodeValid(userId, dro.Code);
+            Codes validCode = _codesRepository.GetValidCodeWithUserIdAndCode(userId, dro.Code);
 
-            if (result.CodeId <= 0)
+            if (validCode.CodeId <= 0)
             {
                 return StatusCode(StatusCodes.Status401Unauthorized);
             }
 
-            // Mark code as used
-            _codesRepository.MarkCodeAsUsed(result.CodeId);
+            // Set code as used and update to database
+            validCode.Used = true;
 
-            // Update email verified column in userDetails
-            long rowId = _userDetailsRepository.UpdateEmailVerified(userId);
+            long affectedRow = _codesRepository.UpdateCode(validCode);
 
-            // rowId being 0 indicates a problem with updating the row
-            if (rowId > 0)
+            // Get user details and update email verified column to true
+            UserDetail details = _userDetailsRepository.GetUserDetailsByUserId(userId);
+
+            details.EmailVerified = true;
+
+            long affectedRowId = _userDetailsRepository.UpdateUserDetails(details);
+
+            if (affectedRowId <= 0)
             {
-                return StatusCode(StatusCodes.Status201Created);
+                return StatusCode(StatusCodes.Status500InternalServerError);
             }
 
-            return StatusCode(StatusCodes.Status500InternalServerError);
+            return StatusCode(StatusCodes.Status200OK);
         }
 
         // Returns
@@ -72,16 +77,18 @@ namespace HeyaChat_Authorization.Controllers
             long userId = _jwtService.GetClaims(Request).userId;
 
             // Check if code is valid
-            Codes result = _codesRepository.IsCodeValid(userId, dro.Code);
+            Codes validCode = _codesRepository.GetValidCodeWithUserIdAndCode(userId, dro.Code);
 
             // CodeId being 0 indicates code wasn't valid
-            if (result.CodeId <= 0)
+            if (validCode.CodeId <= 0)
             {
                 return StatusCode(StatusCodes.Status401Unauthorized);
             }
 
-            // Mark code as used
-            _codesRepository.MarkCodeAsUsed(result.CodeId);
+            // Set code as used and update to database
+            validCode.Used = true;
+
+            long affectedRow = _codesRepository.UpdateCode(validCode);
 
             // If Code was correct, return 200 to proceed to the next step
             return StatusCode(StatusCodes.Status200OK);
@@ -97,15 +104,17 @@ namespace HeyaChat_Authorization.Controllers
             long userId = _jwtService.GetClaims(Request).userId;
 
             // Check if code is valid
-            Codes result = _codesRepository.IsCodeValid(userId, dro.Code);
+            Codes validCode = _codesRepository.GetValidCodeWithUserIdAndCode(userId, dro.Code);
 
-            if (result.CodeId <= 0)
+            if (validCode.CodeId <= 0)
             {
                 return StatusCode(StatusCodes.Status401Unauthorized);
             }
 
-            // Mark code as used
-            _codesRepository.MarkCodeAsUsed(result.CodeId);
+            // Set code as used and update to database
+            validCode.Used = true;
+
+            long affectedRow = _codesRepository.UpdateCode(validCode);
 
             // Invalidate tokens for other devices to enforce only one device online policy
             _jwtService.InvalidateAllTokens(userId);
