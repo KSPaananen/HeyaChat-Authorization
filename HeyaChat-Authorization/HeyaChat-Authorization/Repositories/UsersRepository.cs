@@ -1,6 +1,8 @@
 ﻿using HeyaChat_Authorization.Models;
 using HeyaChat_Authorization.Models.Context;
 using HeyaChat_Authorization.Repositories.Interfaces;
+using Microsoft.EntityFrameworkCore;
+using System.Text;
 
 namespace HeyaChat_Authorization.Repositories
 {
@@ -16,12 +18,12 @@ namespace HeyaChat_Authorization.Repositories
             _context = context ?? throw new NullReferenceException(nameof(context));
         }
 
-        public User GetUserByUserID(long userID)
+        public User GetUserByUserID(long userId)
         {
             try
             {
                 var result = (from user in _context.Users
-                              where user.UserId == userID
+                              where user.UserId == userId
                               select user).SingleOrDefault() ?? new User();
 
                 return result;
@@ -37,7 +39,7 @@ namespace HeyaChat_Authorization.Repositories
             try
             {
                 var result = (from user in _context.Users
-                              where user.Username == field ||user.Email == field
+                              where user.Username == field || user.Email == field
                               select user).SingleOrDefault() ?? new User();
 
                 return result;
@@ -80,6 +82,20 @@ namespace HeyaChat_Authorization.Repositories
                 }
 
                 return 0;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
+        }
+
+        public long UpdateUsersPasswordAndSalt(long userId, string passwordHash, byte[] passwordSalt)
+        {
+            try
+            {
+                FormattableString sql = $"UPDATE Users SET password_hash = {passwordHash} AND password_salt = {passwordSalt} WHERE user_id = {userId} RETURNING user_id";
+
+                return _context.Database.SqlQuery<long>(sql).FirstOrDefault();
             }
             catch (Exception ex)
             {
@@ -135,8 +151,29 @@ namespace HeyaChat_Authorization.Repositories
             try
             {
                 var count = (from user in _context.Users
-                             where user.Username == login || user.Email == login &&  user.PasswordHash == passwordHash
+                             where user.Username == login || user.Email == login && user.PasswordHash == passwordHash
                              select user).Count();
+
+                if (count > 0)
+                {
+                    return true;
+                }
+
+                return false;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
+        }
+
+        public bool IsBiometricsLoginValid(byte[] biometrics)
+        {
+            try
+            {
+                string sql = $"SELECT COUNT(*) FROM users WHERE biometrics_key = {biometrics}";
+
+                int count = _context.Database.ExecuteSqlRaw(sql);
 
                 if (count > 0)
                 {

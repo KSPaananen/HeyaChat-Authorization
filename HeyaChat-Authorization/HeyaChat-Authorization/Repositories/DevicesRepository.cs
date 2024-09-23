@@ -47,24 +47,21 @@ namespace HeyaChat_Authorization.Repositories
             }
         }
 
-        public long InsertOrUpdateDevice(Device device)
+        public (long deviceId, bool alreadyExisted) InsertDeviceIfDoesntExist(Device device)
         {
             try
             {
                 // See if device exists
                 var resultDevice = GetDeviceWithUUID(device.DeviceIdentifier);
 
-                // Update if already exists or create a new row
                 if (resultDevice.DeviceId > 0)
                 {
-                    long updatedId = UpdateDevice(resultDevice);
-
-                    return updatedId;
+                    return (deviceId: resultDevice.DeviceId, alreadyExisted: true);
                 }
                 else
                 {
                     long insertedId = InsertDevice(device);
-                    return insertedId;
+                    return (deviceId: insertedId, alreadyExisted: false);
                 }
             }
             catch (Exception ex)

@@ -2,13 +2,9 @@
 
 namespace HeyaChat_Authorization.DataObjects.DRO
 {
-    public class LoginDRO
+    public class PasswordChangeDRO
     {
-        public string Login { get; set; } = null!; // This can be username or password
-
         public string Password { get; set; } = null!;
-
-        public byte[] BiometricsKey { get; set; } = null!;
 
         public UserDevice Device { get; set; } = null!;
     }

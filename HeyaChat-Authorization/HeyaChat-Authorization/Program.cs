@@ -79,7 +79,7 @@ builder.Services.AddSwaggerGen(options =>
 
 // Services
 builder.Services.AddScoped<IJwtService, JwtService>();
-builder.Services.AddScoped<IEmailService, EmailService>();
+builder.Services.AddScoped<IMessageService, MessageService>();
 builder.Services.AddScoped<IHasherService, HasherService>();
 
 // Repositories
@@ -89,6 +89,8 @@ builder.Services.AddScoped<IUserDetailsRepository, UserDetailsRepository>();
 builder.Services.AddScoped<IDevicesRepository, DevicesRepository>();
 builder.Services.AddScoped<ICodesRepository, CodesRepository>();
 builder.Services.AddScoped<ITokensRepository, TokensRepository>();
+builder.Services.AddScoped<ISuspensionsRepository, SuspensionsRepository>();
+builder.Services.AddScoped<IAuditLogsRepository, AuditLogsRepository>();
 
 // Define ports for enviroments
 if (builder.Environment.IsDevelopment())

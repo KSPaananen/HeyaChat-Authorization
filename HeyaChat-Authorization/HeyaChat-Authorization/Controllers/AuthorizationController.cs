@@ -15,24 +15,28 @@ namespace HeyaChat_Authorization.Controllers
     public class AuthorizationController : ControllerBase
     {
         private IHasherService _hasherService;
-        private IEmailService _emailService;
+        private IMessageService _messageService;
         private IJwtService _jwtService;
 
         private IUsersRepository _usersRepository;
         private IUserDetailsRepository _userDetailsRepository;
         private IDevicesRepository _devicesRepository;
+        private ISuspensionsRepository _suspensionsRepository;
+        private IAuditLogsRepository _auditLogsRepository;
         
 
         public AuthorizationController(IUsersRepository usersRepository, IUserDetailsRepository userDetailsRepository, IDevicesRepository devicesRepository, 
-            IHasherService hasherService, IEmailService emailService, IJwtService jwtService)
+            IHasherService hasherService, IMessageService messageService, IJwtService jwtService, ISuspensionsRepository suspensionsRepository, IAuditLogsRepository auditLogsRepository)
         {
             _hasherService = hasherService ?? throw new NullReferenceException(nameof(hasherService));
-            _emailService = emailService ?? throw new NullReferenceException(nameof(emailService));
+            _messageService = messageService ?? throw new NullReferenceException(nameof(messageService));
             _jwtService = jwtService ?? throw new NullReferenceException(nameof(jwtService));
 
             _usersRepository = usersRepository ?? throw new NullReferenceException(nameof(usersRepository));
             _userDetailsRepository = userDetailsRepository ?? throw new NullReferenceException(nameof(userDetailsRepository));
             _devicesRepository = devicesRepository ?? throw new NullReferenceException(nameof(devicesRepository));
+            _suspensionsRepository = suspensionsRepository ?? throw new NullReferenceException(nameof(suspensionsRepository));
+            _auditLogsRepository = auditLogsRepository ?? throw new NullReferenceException(nameof(auditLogsRepository));
         }
 
         private Regex usernameRgx = new Regex(@"^[a-zA-Z0-9_-]{3,20}$");
@@ -99,72 +103,132 @@ namespace HeyaChat_Authorization.Controllers
                 return StatusCode(StatusCodes.Status500InternalServerError);
             }
 
-            // Send verification email to verify users email. This method automatically saves code to database
-            _emailService.SendVerificationEmail(userId, dro.Email);
-
             // Generate JWT with type "login". This method automatically adds token to DB
             var token = _jwtService.GenerateToken(userId, deviceId, "login");
 
             // Add token to Response header under Authorization
             Response.Headers.Authorization = token;
 
+            // Send verification email to verify user. This method automatically saves code to database
+            // Send email after everything else incase theres problems with the email sending
+            _messageService.SendVerificationEmail(userId, dro.Email);
+
             return StatusCode(StatusCodes.Status201Created);
         }
 
-        [HttpPost]                      // Returns
-        [Route("Login")]                // 200: Login succesful     202: Login succesful, but email isn't verified      401: Login unsuccesful
+        [HttpPost]                      // 200: Login succesful        202: MFA verification required     206: Login succesful, but email isn't verified
+        [Route("Login")]                // 401: Login unsuccesful      403: User suspended
         public IActionResult Login(LoginDRO dro)
         {
-            User userObj = _usersRepository.GetUserByUsernameOrEmail(dro.Login);
+            User user;
 
-            if (userObj.UserId <= 0)
+            // Perform login based on the type of login. Credentials or biometrics
+            if (dro.Login == "" && dro.Password == "")
             {
-                return StatusCode(StatusCodes.Status401Unauthorized);
+                bool isValid = _usersRepository.IsBiometricsLoginValid(dro.BiometricsKey);
+
+                if (!isValid)
+                {
+                    return StatusCode(StatusCodes.Status401Unauthorized);
+                }
+            }
+            else
+            {
+                user = _usersRepository.GetUserByUsernameOrEmail(dro.Login);
+
+                // Hash the password from dro with salt from the user object and see if they match
+                var requestHashedPassword = _hasherService.Hash(dro.Password, user.PasswordSalt);
+
+                if (requestHashedPassword != user.PasswordHash)
+                {
+                    return StatusCode(StatusCodes.Status401Unauthorized);
+                }
             }
 
-            // Hash the password from dro with salt from user object and see if they match
-            byte[] salt = userObj.PasswordSalt;
+            // Check if user is currently suspended
+            bool isSuspended = _suspensionsRepository.IsCurrentlySuspended(user.UserId);
 
-            var droHashedPassword = _hasherService.Hash(dro.Password, salt);
-
-            // Check login mathces either username or email and passwordhash
-            if (droHashedPassword == userObj.PasswordHash && dro.Login == userObj.Username || dro.Login == userObj.Email)
+            if (isSuspended)
             {
-                // After succesful login invalid tokens for other devices to enforce only one device online policy
-                _jwtService.InvalidateAllTokens(userObj.UserId);
+                return StatusCode(StatusCodes.Status403Forbidden);
+            }
 
-                // Add users current device to database if it doesn't exist there or get DeviceId of already saved device
-                Device device = new Device
+            // Read userdetails to define login flow
+            var userDetails = _userDetailsRepository.GetUserDetailsByUserId(user.UserId);
+
+            // See if current device already exists in the database
+            Device device = new Device
+            {
+                DeviceName = dro.Device.DeviceName,
+                DeviceIdentifier = dro.Device.DeviceIdentifier,
+                CountryTag = dro.Device.CountryTag,
+                // UsedAt is handled by the database
+                UserId = user.UserId
+            };
+
+            var deviceResults = _devicesRepository.InsertDeviceIfDoesntExist(device);
+
+            // Add to audit logs if user is logging in from a new device
+            if (deviceResults.alreadyExisted == false)
+            {
+                long auditLogId = _auditLogsRepository.InsertAuditLog(device.DeviceId, 0);
+            }
+
+            // - Act on multifactorauth if user logs in for the first time on a device
+            // - Users with unverified emails should be sent a verification email until they verify it
+
+            // MFA enabled and logging in from a new device
+            if (deviceResults.alreadyExisted == false && userDetails.MfaEnabled)
+            {
+                // Check which type of mfa to use
+                if (userDetails.PhoneVerified)
                 {
-                    DeviceName = dro.Device.DeviceName,
-                    DeviceIdentifier = dro.Device.DeviceIdentifier,
-                    CountryTag = dro.Device.CountryTag,
-                    // UsedAt is handled by the database
-                    UserId = userObj.UserId
-                };
-
-                // Insert new device to db or update already existing
-                long deviceId = _devicesRepository.InsertOrUpdateDevice(device);
-
-                // Generate a token for current device and add it to authorization header
-                string token = _jwtService.GenerateToken(userObj.UserId, deviceId, "login");
-
-                Response.Headers.Authorization = token;
-
-                // Send statuscode according to email verification status
-                UserDetail userDetails = _userDetailsRepository.GetUserDetailsByUserId(userObj.UserId);
-
-                if (userDetails.EmailVerified)
-                {
-                    return StatusCode(StatusCodes.Status200OK);
+                    // Send code as a text message
+                    _messageService.SendVerificationTextMessage(user.UserId, user.Email);
                 }
                 else
                 {
-                    return StatusCode(StatusCodes.Status202Accepted);
+                    // Send code as an email
+                    _messageService.SendVerificationEmail(user.UserId, user.Email);
                 }
+
+                // Generate token after mfa code verification
+
+                return StatusCode(StatusCodes.Status202Accepted);
             }
 
-            return StatusCode(StatusCodes.Status401Unauthorized);
+            // Invalidate tokens for other devices to enforce only one device online policy
+            _jwtService.InvalidateAllTokens(user.UserId);
+
+            // Generate a new token and add it to the authorization header. GenerateToken() method automatically adds token to database
+            Response.Headers.Authorization = _jwtService.GenerateToken(user.UserId, deviceResults.deviceId, "login");
+
+            if (userDetails.EmailVerified)
+            {
+                return StatusCode(StatusCodes.Status200OK);
+            }
+            else
+            {
+                // Send email with verification code
+                _messageService.SendVerificationEmail(user.UserId, user.Email);
+
+                // Return 206 to notify frontend of the required extra steps
+                return StatusCode(StatusCodes.Status206PartialContent);
+            }
+        }
+
+        [HttpPost]
+        [TokenTypeAuthorize("login")]   // Returns
+        [Route("LogOut")]               // 200: Logged out
+        public IActionResult LogOut()
+        {
+            // Get token indetifier from authorization header
+            Guid jti = _jwtService.GetClaims(Request).jti;
+
+            // Set token identifiers "active" property to false
+            var awda = _jwtService.InvalidateToken(jti);
+
+            return StatusCode(StatusCodes.Status200OK);
         }
 
         [HttpPost]
@@ -172,7 +236,7 @@ namespace HeyaChat_Authorization.Controllers
         [Route("PingBackend")]          // 200: User still logged in
         public IActionResult PingBackend()
         {
-            // All token related verifying is handled at middleware so just return 200
+            // All token related verifying and renewing is handled at middleware so just return 200
 
             return StatusCode(StatusCodes.Status200OK);
         }

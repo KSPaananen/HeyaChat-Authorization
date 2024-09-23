@@ -8,7 +8,7 @@ namespace HeyaChat_Authorization.Repositories.Interfaces
         // Returns ID of a created row
         long InsertDevice(Device device);
 
-        long InsertOrUpdateDevice(Device device);
+        (long deviceId, bool alreadyExisted) InsertDeviceIfDoesntExist(Device device);
 
         // Returns ID of a created row
         long UpdateDevice(Device device);

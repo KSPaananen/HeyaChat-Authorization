@@ -5,7 +5,7 @@ namespace HeyaChat_Authorization.Repositories.Interfaces
     public interface IUsersRepository
     {
         // Returns user object found with ID
-        User GetUserByUserID(long userID);
+        User GetUserByUserID(long userId);
 
         // Returns user object found with 
         User GetUserByUsernameOrEmail(string field);
@@ -13,8 +13,11 @@ namespace HeyaChat_Authorization.Repositories.Interfaces
         // Returns ID of the created row
         long InsertUser(User newUser);
 
-        // Returns ID of the modified row
+        // Returns ID of the updated row
         long UpdateUser(User updatedUser);
+
+        // Returns ID of the updated row
+        long UpdateUsersPasswordAndSalt(long userId, string passwordHash, byte[] passwordSalt);
 
         // Returns boolean based on if deletion was succesful
         void DeleteUser(long userID);
@@ -24,6 +27,9 @@ namespace HeyaChat_Authorization.Repositories.Interfaces
 
         // Returns boolean based on if a row can be found
         bool IsLoginValid(string login, string passwordHash);
+
+        // Returns boolean based on if a row can be found
+        bool IsBiometricsLoginValid(byte[] biometrics);
 
     }
 }

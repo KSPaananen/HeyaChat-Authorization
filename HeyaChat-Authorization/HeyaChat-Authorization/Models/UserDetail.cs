@@ -9,9 +9,9 @@ public partial class UserDetail
 
     public bool EmailVerified { get; set; }
 
-    public bool? PhoneVerified { get; set; }
+    public bool PhoneVerified { get; set; }
 
-    public bool? MfaEnabled { get; set; }
+    public bool MfaEnabled { get; set; }
 
     public DateTime? CreatedAt { get; set; }
 

@@ -9,7 +9,7 @@ using System.Net.Mail;
 
 namespace HeyaChat_Authorization.Services
 {
-    public class EmailService : IEmailService
+    public class MessageService : IMessageService
     {
         private IConfigurationRepository _configurationRepository;
         private ICodesRepository _codesRepository;
@@ -23,7 +23,7 @@ namespace HeyaChat_Authorization.Services
 
         private SmtpClient _client;
 
-        public EmailService(IConfigurationRepository configurationRepository, ICodesRepository codesRepository)
+        public MessageService(IConfigurationRepository configurationRepository, ICodesRepository codesRepository)
         {
             _configurationRepository = configurationRepository ?? throw new NullReferenceException(nameof(configurationRepository));
             _codesRepository = codesRepository ?? throw new NullReferenceException(nameof(codesRepository));
@@ -116,6 +116,11 @@ namespace HeyaChat_Authorization.Services
             {
                 throw new Exception(ex.Message);
             }
+        }
+
+        public void SendVerificationTextMessage(long userId, string email)
+        {
+
         }
 
         private string GenerateCode()
