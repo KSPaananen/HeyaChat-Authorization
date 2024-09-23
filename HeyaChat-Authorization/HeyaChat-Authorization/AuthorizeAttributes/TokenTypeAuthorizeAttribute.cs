@@ -7,6 +7,7 @@ namespace HeyaChat_Authorization.AuthorizeAttributes
 {
     /// <summary>
     ///     <para>This AuthorizeAttribute allows controller method filtering based on token type claim.</para>
+    ///     <para>Types: login, password, suspended.</para>
     /// </summary>
     public class TokenTypeAuthorizeAttribute : AuthorizeAttribute, IAuthorizationFilter
     {

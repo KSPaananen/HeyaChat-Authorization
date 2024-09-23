@@ -9,11 +9,14 @@ namespace HeyaChat_Authorization.Middleware
     public class ExceptionHandlerMiddleware
     {
         private RequestDelegate _requestDel;
-        // Add logger later
 
-        public ExceptionHandlerMiddleware(RequestDelegate requestDel)
+        private ILogger<ExceptionHandlerMiddleware> _logger;
+
+        public ExceptionHandlerMiddleware(RequestDelegate requestDel, ILogger<ExceptionHandlerMiddleware> logger)
         {
             _requestDel = requestDel ?? throw new NullReferenceException(nameof(requestDel));
+
+            _logger = logger ?? throw new NullReferenceException(nameof(logger));
         }
 
         public async Task InvokeAsync(HttpContext context)
@@ -24,7 +27,7 @@ namespace HeyaChat_Authorization.Middleware
             }
             catch (Exception ex)
             {
-                // *Error logging here*
+                _logger.LogWarning(ex.Message);
 
                 await HandleExceptionAsync(context, ex);
             }

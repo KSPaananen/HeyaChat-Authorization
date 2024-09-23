@@ -92,6 +92,10 @@ builder.Services.AddScoped<ITokensRepository, TokensRepository>();
 builder.Services.AddScoped<ISuspensionsRepository, SuspensionsRepository>();
 builder.Services.AddScoped<IAuditLogsRepository, AuditLogsRepository>();
 
+// Configure logging
+builder.Logging.ClearProviders();
+builder.Logging.AddConsole();
+
 // Define ports for enviroments
 if (builder.Environment.IsDevelopment())
 {

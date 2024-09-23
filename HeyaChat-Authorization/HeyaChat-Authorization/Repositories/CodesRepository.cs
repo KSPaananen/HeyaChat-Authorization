@@ -59,5 +59,30 @@ namespace HeyaChat_Authorization.Repositories
             }
         }
 
+        public long MarkCodeAsUsed(long codeId)
+        {
+            try
+            {
+                var result = (from code in _context.Codess
+                               where code.CodeId == codeId
+                               select code).FirstOrDefault() ?? null;
+
+                if (result != null)
+                {
+                    result.Used = true;
+                    _context.SaveChanges();
+
+                    return result.CodeId;
+                }
+
+                return 0;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
+        }
+
+
     }
 }

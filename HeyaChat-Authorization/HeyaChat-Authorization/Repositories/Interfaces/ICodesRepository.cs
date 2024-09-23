@@ -8,5 +8,7 @@ namespace HeyaChat_Authorization.Repositories.Interfaces
         long InsertCode(long userId, string code);
 
         Codes IsCodeValid(long userId, string code);
+
+        long MarkCodeAsUsed(long codeId);
     }
 }

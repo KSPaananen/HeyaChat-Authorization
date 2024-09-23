@@ -43,12 +43,16 @@ namespace HeyaChat_Authorization.Controllers
         private Regex emailRgx = new Regex(@"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$");
         private Regex passwordRgx = new Regex(@"^.{8,}$");
 
-        [HttpPost]                      // Returns
-        [Route("Register")]             // 201: New user created    304: New user not created   500: Problems with the database
+        // Returns
+        // 201: New user registered     304: New user not registered    500: Database problems
+        [HttpPost]                      
+        [Route("Register")]             
         public IActionResult Register(RegisterDRO dro)
         {
             // Stop execution if username or email are found in database or RegisterDRO fails regex check
-            if (_usersRepository.DoesUserExist(dro.Username, dro.Email) || !usernameRgx.IsMatch(dro.Username) && !emailRgx.IsMatch(dro.Email) && !passwordRgx.IsMatch(dro.Password))
+            bool doesExist = _usersRepository.DoesUserExist(dro.Username, dro.Email);
+
+            if (doesExist || !usernameRgx.IsMatch(dro.Username) && !emailRgx.IsMatch(dro.Email) && !passwordRgx.IsMatch(dro.Password))
             {
                 return StatusCode(StatusCodes.Status304NotModified);
             }
@@ -116,11 +120,14 @@ namespace HeyaChat_Authorization.Controllers
             return StatusCode(StatusCodes.Status201Created);
         }
 
-        [HttpPost]                      // 200: Login succesful        202: MFA verification required     206: Login succesful, but email isn't verified
-        [Route("Login")]                // 401: Login unsuccesful      403: User suspended
+        // Returns
+        // 200: Login succesful     202: MFA verification required      206: Login succesful, email unverified
+        // 401: Lgin unsuccesful    403: User suspended
+        [HttpPost]
+        [Route("Login")]   
         public IActionResult Login(LoginDRO dro)
         {
-            User user;
+            User user = _usersRepository.GetUserByUsernameOrEmail(dro.Login);
 
             // Perform login based on the type of login. Credentials or biometrics
             if (dro.Login == "" && dro.Password == "")
@@ -134,8 +141,6 @@ namespace HeyaChat_Authorization.Controllers
             }
             else
             {
-                user = _usersRepository.GetUserByUsernameOrEmail(dro.Login);
-
                 // Hash the password from dro with salt from the user object and see if they match
                 var requestHashedPassword = _hasherService.Hash(dro.Password, user.PasswordSalt);
 
@@ -217,23 +222,32 @@ namespace HeyaChat_Authorization.Controllers
             }
         }
 
+        // Returns
+        // 200: User logged out     404: Token couldn't be found
         [HttpPost]
-        [TokenTypeAuthorize("login")]   // Returns
-        [Route("LogOut")]               // 200: Logged out
+        [TokenTypeAuthorize("login")]
+        [Route("LogOut")]
         public IActionResult LogOut()
         {
             // Get token indetifier from authorization header
             Guid jti = _jwtService.GetClaims(Request).jti;
 
             // Set token identifiers "active" property to false
-            var awda = _jwtService.InvalidateToken(jti);
+            long tokenId = _jwtService.InvalidateToken(jti);
 
-            return StatusCode(StatusCodes.Status200OK);
+            if (tokenId > 0)
+            {
+                return StatusCode(StatusCodes.Status200OK);
+            }
+
+            return StatusCode(StatusCodes.Status404NotFound);
         }
 
-        [HttpPost]
-        [TokenTypeAuthorize("login")]   // Returns
-        [Route("PingBackend")]          // 200: User still logged in
+        // Returns
+        // 200: User still logged in
+        [HttpGet]
+        [TokenTypeAuthorize("login")]
+        [Route("PingBackend")]
         public IActionResult PingBackend()
         {
             // All token related verifying and renewing is handled at middleware so just return 200

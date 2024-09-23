@@ -28,10 +28,12 @@ namespace HeyaChat_Authorization.Controllers
             _devicesRepository = devicesRepository ?? throw new ArgumentNullException(nameof(devicesRepository));
         }
 
+        // Returns
+        // 200: Verified succesfully    // 401: Incorrect code      500: Problems with the database
         [HttpPost, Authorize]
-        [TokenTypeAuthorize("login")]       // Returns
-        [Route("EmailVerification")]        // 200: Verification succesful      304: Incorrect code     500: Problems with the database
-        public IActionResult EmailVerification(VerifyDRO dro)
+        [TokenTypeAuthorize("login")]
+        [Route("VerifyEmail")]
+        public IActionResult VerifyEmail(VerifyDRO dro)
         {
             // Get userId from token
             long userId = _jwtService.GetClaims(Request).userId;
@@ -39,10 +41,13 @@ namespace HeyaChat_Authorization.Controllers
             // Query database if code is valid and associated with the user
             Codes result = _codesRepository.IsCodeValid(userId, dro.Code);
 
-            if (result.CodeId == 0)
+            if (result.CodeId <= 0)
             {
-                return StatusCode(StatusCodes.Status304NotModified);
+                return StatusCode(StatusCodes.Status401Unauthorized);
             }
+
+            // Mark code as used
+            _codesRepository.MarkCodeAsUsed(result.CodeId);
 
             // Update email verified column in userDetails
             long rowId = _userDetailsRepository.UpdateEmailVerified(userId);
@@ -56,10 +61,12 @@ namespace HeyaChat_Authorization.Controllers
             return StatusCode(StatusCodes.Status500InternalServerError);
         }
 
+        // Returns
+        // 200: Verified succesfully    401: Incorrect code
         [HttpPost, Authorize]
-        [TokenTypeAuthorize("password, login")] // Returns
-        [Route("CodeVerification")]             // 200: Verification succesful   304: Incorrect code
-        public IActionResult CodeVerification(VerifyDRO dro)
+        [TokenTypeAuthorize("password, login")]
+        [Route("VerifyCode")]
+        public IActionResult VerifyCode(VerifyDRO dro)
         {
             // Get userId from token
             long userId = _jwtService.GetClaims(Request).userId;
@@ -70,16 +77,21 @@ namespace HeyaChat_Authorization.Controllers
             // CodeId being 0 indicates code wasn't valid
             if (result.CodeId <= 0)
             {
-                return StatusCode(StatusCodes.Status304NotModified);
+                return StatusCode(StatusCodes.Status401Unauthorized);
             }
+
+            // Mark code as used
+            _codesRepository.MarkCodeAsUsed(result.CodeId);
 
             // If Code was correct, return 200 to proceed to the next step
             return StatusCode(StatusCodes.Status200OK);
         }
 
-        [HttpPost]                              // Returns
-        [Route("MFAVerification")]              // 401: Incorrect code
-        public IActionResult MFAVerification(VerifyDRO dro)
+        // Returns
+        // 200: Verified succesfully    401: Incorrect code
+        [HttpPost]                             
+        [Route("VerifyMFA")]              
+        public IActionResult VerifyMFA(VerifyDRO dro)
         {
             // Get userId from token
             long userId = _jwtService.GetClaims(Request).userId;
@@ -91,6 +103,9 @@ namespace HeyaChat_Authorization.Controllers
             {
                 return StatusCode(StatusCodes.Status401Unauthorized);
             }
+
+            // Mark code as used
+            _codesRepository.MarkCodeAsUsed(result.CodeId);
 
             // Invalidate tokens for other devices to enforce only one device online policy
             _jwtService.InvalidateAllTokens(userId);

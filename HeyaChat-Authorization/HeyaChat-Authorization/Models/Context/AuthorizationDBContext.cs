@@ -8,9 +8,9 @@ public partial class AuthorizationDBContext : DbContext
 {
     private IConfigurationRepository _configurationRepository;
 
-    public AuthorizationDBContext()
+    public AuthorizationDBContext(IConfigurationRepository configurationRepository)
     {
-        
+        _configurationRepository = configurationRepository ?? throw new NullReferenceException(nameof(configurationRepository));
     }
 
     public AuthorizationDBContext(IConfigurationRepository configurationRepository, DbContextOptions<AuthorizationDBContext> options) : base(options)
