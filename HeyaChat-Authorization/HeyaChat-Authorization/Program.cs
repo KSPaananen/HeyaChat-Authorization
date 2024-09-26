@@ -31,7 +31,7 @@ builder.Services.AddRateLimiter(options =>
         options.PermitLimit = _configurationRepository.GetPermitLimit();
         options.Window = _configurationRepository.GetTimeWindow(); ;
         options.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
-        options.QueueLimit = 5;
+        options.QueueLimit = _configurationRepository.GetQueueLimit();
     });
     options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
 });

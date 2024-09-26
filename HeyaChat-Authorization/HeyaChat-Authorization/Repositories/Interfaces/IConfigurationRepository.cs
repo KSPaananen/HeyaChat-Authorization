@@ -39,5 +39,7 @@
         int GetPermitLimit();
 
         TimeSpan GetTimeWindow();
+
+        int GetQueueLimit();
     }
 }

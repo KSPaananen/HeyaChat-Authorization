@@ -6,6 +6,8 @@ namespace HeyaChat_Authorization.DataObjects.DRO
     {
         public string Password { get; set; } = null!;
 
+        public string PasswordRepeat { get; set; } = null!;
+
         public UserDevice Device { get; set; } = null!;
     }
 }

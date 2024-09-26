@@ -334,6 +334,23 @@ namespace HeyaChat_Authorization.Repositories
             throw new NullReferenceException($"Unable to read timewindow in ratelimiter from configuration.");
         }
 
+        public int GetQueueLimit()
+        {
+            if (_config == null)
+            {
+                throw new NullReferenceException("Configuration is null.");
+            }
+
+            string result = _config.GetSection("ratelimiter:queuelimit").Value ?? "";
+
+            if (result != "")
+            {
+                return int.Parse(result);
+            }
+
+            throw new NullReferenceException($"Unable to read queuelimit in ratelimiter from configuration.");
+        }
+
 
     }
 }

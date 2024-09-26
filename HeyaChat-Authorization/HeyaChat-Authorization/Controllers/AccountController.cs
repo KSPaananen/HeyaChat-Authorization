@@ -1,4 +1,5 @@
 ﻿using HeyaChat_Authorization.AuthorizeAttributes;
+using HeyaChat_Authorization.DataObjects;
 using HeyaChat_Authorization.DataObjects.DRO;
 using HeyaChat_Authorization.Models;
 using HeyaChat_Authorization.Repositories;
@@ -63,12 +64,41 @@ namespace HeyaChat_Authorization.Controllers
         }
 
         // Returns
-        // 201: Password changed    500: Problems saving changes to database
+        //
+        [HttpPost, Authorize]
+        [TokenTypeAuthorize("login")]
+        [Route("ChangeBiometricsKey")]
+        public IActionResult ChangeBiometricsKey(AddBiometricsKey dro)
+        {
+            // Get userId from token
+            long userId = _jwtService.GetClaims(Request).userId;
+
+            // Read user from db with userid
+            User user = _usersRepository.GetUserByUserID(userId);
+
+            // Assign new biometricskey to user and save to db
+            user.BiometricsKey = dro.BiometricsKey;
+
+            _usersRepository.UpdateUser(user);
+
+            // We probably don't have to audit log this?
+
+            return StatusCode(StatusCodes.Status501NotImplemented);
+        }
+
+        // Returns
+        // 201: Password changed    304: Passwords didn't match   500: Problems saving changes to database
         [HttpPost, Authorize]
         [TokenTypeAuthorize("password")]
         [Route("ChangePassword")]
         public IActionResult ChangePassword(PasswordChangeDRO dro)
         {
+            // Check if passwords match
+            if (dro.Password != dro.PasswordRepeat)
+            {
+                return StatusCode(StatusCodes.Status304NotModified);
+            }
+
             // Get userId from token
             long userId = _jwtService.GetClaims(Request).userId;
 
@@ -82,12 +112,7 @@ namespace HeyaChat_Authorization.Controllers
             foundUser.PasswordHash = passwordHash;
             foundUser.PasswordSalt = salt;
 
-            long updatedUserId = _usersRepository.UpdateUser(foundUser);
-
-            if (updatedUserId <= 0)
-            {
-                return StatusCode(StatusCodes.Status500InternalServerError);
-            }
+            _usersRepository.UpdateUser(foundUser);
 
             // Get user device for audit logging
             Device device = _devicesRepository.GetDeviceWithUUID(dro.Device.DeviceIdentifier);
