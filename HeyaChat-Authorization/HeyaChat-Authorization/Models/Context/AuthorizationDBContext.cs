@@ -44,7 +44,6 @@ public partial class AuthorizationDBContext : DbContext
         });
     }
         
-
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<AuditLog>(entity =>

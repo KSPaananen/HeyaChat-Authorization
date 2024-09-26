@@ -2,6 +2,7 @@
 using HeyaChat_Authorization.Models;
 using HeyaChat_Authorization.Repositories.Interfaces;
 using HeyaChat_Authorization.Services.Interfaces;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
@@ -20,7 +21,6 @@ namespace HeyaChat_Authorization.Services
             _tokensRepository = tokensRepository ?? throw new NullReferenceException(nameof(tokensRepository));
         }
 
-        // userID self explanatory
         // type defines what token can be used for. Types: "login" "password" "suspended"
         public string GenerateToken(long userId, long deviceId, string type)
         {

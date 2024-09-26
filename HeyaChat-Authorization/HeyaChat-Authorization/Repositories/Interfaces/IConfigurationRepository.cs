@@ -2,9 +2,13 @@
 {
     public interface IConfigurationRepository
     {
+        string GetApplicationName();
+
         TimeSpan GetTokenLifeTime();
 
         TimeSpan GetTokenRenewTime();
+
+        TimeSpan GetAverageKeyLifetime();
 
         byte[] GetSigningKey();
 
@@ -16,6 +20,12 @@
 
         string GetConnectionString();
 
+        string GetCertificatePath();
+
+        string GetCertificatePassword();
+
+        string GetKeyStoragePath();
+
         string GetEmailSender();
 
         string GetEmailPassword();
@@ -25,5 +35,9 @@
         int GetEmailPort();
 
         TimeSpan GetCodeLifeTime();
+
+        int GetPermitLimit();
+
+        TimeSpan GetTimeWindow();
     }
 }
