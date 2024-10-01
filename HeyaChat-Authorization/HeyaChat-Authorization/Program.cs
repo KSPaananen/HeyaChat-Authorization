@@ -120,6 +120,7 @@ builder.Services.AddScoped<ICodesRepository, CodesRepository>();
 builder.Services.AddScoped<ITokensRepository, TokensRepository>();
 builder.Services.AddScoped<ISuspensionsRepository, SuspensionsRepository>();
 builder.Services.AddScoped<IAuditLogsRepository, AuditLogsRepository>();
+builder.Services.AddScoped<IBlockedCredentialsRepository, BlockedCredentialsRepository>();
 
 // Configure logging
 builder.Logging.ClearProviders();

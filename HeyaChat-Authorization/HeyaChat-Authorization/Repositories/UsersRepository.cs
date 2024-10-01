@@ -123,22 +123,33 @@ namespace HeyaChat_Authorization.Repositories
             }
         }
 
-        public bool UserExistsOrBlocked(string username, string email)
+        public (bool usernameInUse, bool emailInUse) UsernameOrEmailInUse(string username, string email)
         {
             try
             {
-                // Try finding rows from users and blocked credentials. Return true if found
-                int result = (from user in _context.Users
-                              join blockedCred in _context.BlockedCredentials on user.Email equals blockedCred.Email
-                              where user.Username == username || user.Email == email || blockedCred.Email == email
-                              select user).Count();
+                User foundUser = (from user in _context.Users
+                           where user.Username == username || user.Email == email
+                           select user).FirstOrDefault() ?? new User();
 
-                if (result > 0)
+                if (foundUser.UserId != 0)
                 {
-                    return true;
+                    bool usernameMatches = false;
+                    bool emailMatches = false;
+
+                    if (foundUser.Username == username)
+                    {
+                        usernameMatches = true;
+                    }
+
+                    if (foundUser.Email == email)
+                    {
+                        emailMatches = true;
+                    }
+
+                    return (usernameMatches, emailMatches);
                 }
 
-                return false;
+                return (usernameInUse: false, emailInUse: false);
             }
             catch (Exception ex)
             {

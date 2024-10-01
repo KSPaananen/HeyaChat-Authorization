@@ -95,7 +95,7 @@ namespace HeyaChat_Authorization.Repositories
             {
                 var result = (from device in _context.Devices
                                   join token in _context.Tokens on device.DeviceId equals token.DeviceId
-                                  where device.DeviceIdentifier == deviceDetails.DeviceIdentifier && token.Identifier == jti && token.ExpiresAt > DateTime.UtcNow && token.Active == true
+                                  where device.DeviceName == deviceDetails.DeviceName && device.DeviceIdentifier == deviceDetails.DeviceIdentifier && token.Identifier == jti && token.ExpiresAt > DateTime.UtcNow && token.Active == true
                                   select token).FirstOrDefault() ?? null;
 
                 if (result != null)

@@ -6,6 +6,6 @@
 
         public Guid DeviceIdentifier { get; set; }
 
-        public string CountryTag { get; set; } = null!;
+        public string CountryCode { get; set; } = null!;
     }
 }

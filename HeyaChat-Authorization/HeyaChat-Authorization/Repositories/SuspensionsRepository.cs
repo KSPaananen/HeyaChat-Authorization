@@ -1,4 +1,5 @@
-﻿using HeyaChat_Authorization.Models.Context;
+﻿using HeyaChat_Authorization.Models;
+using HeyaChat_Authorization.Models.Context;
 using HeyaChat_Authorization.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
@@ -13,20 +14,26 @@ namespace HeyaChat_Authorization.Repositories
             _context = context ?? throw new NullReferenceException(nameof(context));
         }
 
-        public bool IsCurrentlySuspended(long userId)
+        public (bool suspended, bool permanent) IsCurrentlySuspended(long userId)
         {
             try
             {
-                int count = (from suspension in _context.Suspensions
-                            where (suspension.ExpiresAt > DateTime.UtcNow || suspension.ExpiresAt == null) && suspension.LiftedAt == null && suspension.UserId == userId
-                            select suspension).Count();
+                Suspension result = (from suspension in _context.Suspensions
+                                     where (suspension.ExpiresAt > DateTime.UtcNow || suspension.ExpiresAt == null) && suspension.LiftedAt == null && suspension.UserId == userId
+                                     select suspension).FirstOrDefault() ?? new Suspension();
 
-                if (count > 0)
+                if (result.SuspensionId != 0)
                 {
-                    return true;
+                    if (result.ExpiresAt == null)
+                    {
+                        return (suspended: true, permanent: true);
+                    }
+
+                    return (suspended: true, permanent: false);
                 }
 
-                return false;
+
+                return (suspended: false, permanent: false);
             }
             catch (Exception ex)
             {

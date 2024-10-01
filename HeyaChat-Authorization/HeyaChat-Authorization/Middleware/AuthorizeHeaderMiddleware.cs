@@ -93,7 +93,7 @@ namespace HeyaChat_Authorization.Middleware
 
                         userDevice.DeviceIdentifier = Guid.Parse(guidString);
                         userDevice.DeviceName = deviceObject.GetProperty("deviceName").ToString();
-                        userDevice.CountryTag = deviceObject.GetProperty("countryTag").ToString();
+                        userDevice.CountryCode = deviceObject.GetProperty("countryTag").ToString();
                     }
                 }
                 catch (Exception ex)

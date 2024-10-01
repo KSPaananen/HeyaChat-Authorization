@@ -50,7 +50,7 @@ namespace HeyaChat_Authorization.Controllers
             {
                 DeviceName = dro.Device.DeviceName,
                 DeviceIdentifier = dro.Device.DeviceIdentifier,
-                CountryTag = dro.Device.CountryTag,
+                CountryTag = dro.Device.CountryCode,
                 // UsedAt is handled by the database
                 UserId = user.UserId
             };

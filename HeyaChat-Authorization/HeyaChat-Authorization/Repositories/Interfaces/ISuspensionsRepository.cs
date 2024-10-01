@@ -2,6 +2,6 @@
 {
     public interface ISuspensionsRepository
     {
-        bool IsCurrentlySuspended(long userId);
+        (bool suspended, bool permanent) IsCurrentlySuspended(long userId);
     }
 }

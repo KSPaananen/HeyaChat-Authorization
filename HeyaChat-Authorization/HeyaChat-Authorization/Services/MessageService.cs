@@ -135,9 +135,9 @@ namespace HeyaChat_Authorization.Services
             }
         }
 
-        public void SendVerificationTextMessage(long userId, string email)
+        public void SendVerificationTextMessage(long userId, string phone)
         {
-
+            
         }
 
         private string GenerateCode()

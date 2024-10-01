@@ -1,5 +1,4 @@
 ﻿using HeyaChat_Authorization.AuthorizeAttributes;
-using HeyaChat_Authorization.DataObjects;
 using HeyaChat_Authorization.DataObjects.DRO;
 using HeyaChat_Authorization.Models;
 using HeyaChat_Authorization.Repositories;

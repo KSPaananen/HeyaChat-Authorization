@@ -21,8 +21,8 @@ namespace HeyaChat_Authorization.Repositories.Interfaces
         // Returns void
         void DeleteUser(long userId);
 
-        // Returns true if user already exists or email is blocked from creating another account
-        bool UserExistsOrBlocked(string username, string email);
+        // Returns tuple booleans if username already exists or email is blocked from creating another account
+        (bool usernameInUse, bool emailInUse) UsernameOrEmailInUse(string username, string email);
 
     }
 }

@@ -1,6 +1,6 @@
 ﻿using HeyaChat_Authorization.DataObjects.DRO.SubClasses;
 
-namespace HeyaChat_Authorization.DataObjects
+namespace HeyaChat_Authorization.DataObjects.DRO
 {
     public class AddBiometricsKey
     {

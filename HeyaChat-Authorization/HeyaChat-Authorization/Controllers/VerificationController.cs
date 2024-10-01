@@ -67,7 +67,7 @@ namespace HeyaChat_Authorization.Controllers
         }
 
         // Returns
-        // 200: Verified succesfully    401: Incorrect code
+        // 200: Verified succesfully    401: Incorrect code     500: Problems with the database
         [HttpPost, Authorize]
         [TokenTypeAuthorize("password, login")]
         [Route("VerifyCode")]
