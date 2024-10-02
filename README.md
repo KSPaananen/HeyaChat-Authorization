@@ -56,8 +56,13 @@ Authorization backend for Heya!Chat
 }
 ```
 
-2. Add and configure line `"DockerfileRunArguments": "-v host\\path\\to\\volume\\folder:/app/volumes"` to `launchSettings.json` under `Container (Dockerfile)`.
+2. Create a designated volume folder for docker and create folders `certificates` and `keystorage` inside it.
 
-3. Create two folders inside volume folder. `certificates` and `keystorage`.
+3. Create a dev certificate into `certificates` folder with these commands:
+   - `dotnet dev-certs https -ep E:\Host\path\to\volume\folder\certificate.pfx -p yourpassword `
+   - `dotnet dev-certs https --trust`
 
-4. Place your certificate in the `certificates` folder.
+4. Add these arguments to `"DockerfileRunArguments"` in `Container (Dockerfile)` at `launchSettings.json`:
+   - `-v host\\path\\to\\designated\\volume\\folder:/app/volumes` 
+   - `-e ASPNETCORE_Kestrel__Certificates__Default__Password=\"yourpassword\"`
+   - `-e ASPNETCORE_Kestrel__Certificates__Default__Path=/app/volumes/certificates/certificate.pfx`
