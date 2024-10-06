@@ -4,7 +4,7 @@ namespace HeyaChat_Authorization.DataObjects.DRO
 {
     public class RecoveryDRO
     {
-        public string email { get; set; } = null!;
+        public string Email { get; set; } = "";
         public UserDevice Device { get; set; } = null!;
     }
 }

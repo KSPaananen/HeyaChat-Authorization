@@ -21,7 +21,7 @@ namespace HeyaChat_Authorization.Services
             _tokensRepository = tokensRepository ?? throw new NullReferenceException(nameof(tokensRepository));
         }
 
-        // type defines what token can be used for. Types: "login" "password" "suspended"
+        // type defines what token can be used for. Types: "login" "temporary" "suspended"
         public string GenerateToken(long userId, long deviceId, string type)
         {
             // Get required values from repository for creating jwt

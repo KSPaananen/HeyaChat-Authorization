@@ -2,6 +2,7 @@
 using HeyaChat_Authorization.DataObjects.DRO;
 using HeyaChat_Authorization.DataObjects.DRO.SubClasses;
 using HeyaChat_Authorization.DataObjects.DTO;
+using HeyaChat_Authorization.DataObjects.DTO.SubClasses;
 using HeyaChat_Authorization.Models;
 using HeyaChat_Authorization.Repositories.Interfaces;
 using HeyaChat_Authorization.Services.Interfaces;
@@ -19,6 +20,7 @@ namespace HeyaChat_Authorization.Controllers
         private IHasherService _hasherService;
         private IMessageService _messageService;
         private IJwtService _jwtService;
+        private IToolsService _toolsService;
 
         private IUsersRepository _usersRepository;
         private IUserDetailsRepository _userDetailsRepository;
@@ -29,11 +31,12 @@ namespace HeyaChat_Authorization.Controllers
         
         public AuthorizationController(IUsersRepository usersRepository, IUserDetailsRepository userDetailsRepository, IDevicesRepository devicesRepository, 
             IHasherService hasherService, IMessageService messageService, IJwtService jwtService, ISuspensionsRepository suspensionsRepository, IAuditLogsRepository auditLogsRepository,
-            IBlockedCredentialsRepository blockedCredentialsRepository)
+            IBlockedCredentialsRepository blockedCredentialsRepository, IToolsService toolsService)
         {
             _hasherService = hasherService ?? throw new NullReferenceException(nameof(hasherService));
             _messageService = messageService ?? throw new NullReferenceException(nameof(messageService));
             _jwtService = jwtService ?? throw new NullReferenceException(nameof(jwtService));
+            _toolsService = toolsService ?? throw new NullReferenceException(nameof(toolsService));
 
             _usersRepository = usersRepository ?? throw new NullReferenceException(nameof(usersRepository));
             _userDetailsRepository = userDetailsRepository ?? throw new NullReferenceException(nameof(userDetailsRepository));
@@ -42,23 +45,6 @@ namespace HeyaChat_Authorization.Controllers
             _auditLogsRepository = auditLogsRepository ?? throw new NullReferenceException(nameof(auditLogsRepository));
             _blockedCredentialsRepository = blockedCredentialsRepository ?? throw new NullReferenceException(nameof(blockedCredentialsRepository));
         }
-
-        // AuthorizationDTO codes
-        // 310: Username already in use
-        // 311: Email address already in use
-        // 312: Both username and email address already in use
-        // 313: Request didn't pass regex check
-        // 314: Email blocked from creating new accounts
-        // 315: New user registered
-        // 410: User couldn't be found
-        // 411: User temporarily suspended
-        // 412: User permanently suspended
-        // 420: User logged in, but additional confirmation required (mfa)
-        // 421: User logged in.
-        // 422: User logged in. Email confirmation required.
-        // 510: Token not found or didn't belong to user
-        // 511: Token invalidated and user logged out.
-        // 610: Token valid. User still logged in
 
         private Regex usernameRgx = new Regex(@"^[a-zA-Z0-9_-]{3,20}$");
         private Regex emailRgx = new Regex(@"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$");
@@ -76,21 +62,21 @@ namespace HeyaChat_Authorization.Controllers
 
             if (existResults.usernameInUse && existResults.emailInUse)
             {
-                return StatusCode(StatusCodes.Status302Found, new AuthorizationDTO { Status = "Failure", Code = 312, Details = "Username and email address already in use by another account." });
+                return StatusCode(StatusCodes.Status302Found, new ResponseDetails { Code = 1530, Details = "Username and email address already in use by another account." });
             }
             else if (existResults.usernameInUse)
             {
-                return StatusCode(StatusCodes.Status302Found, new AuthorizationDTO { Status = "Failure", Code = 310, Details = "Username already in use by another account." });
+                return StatusCode(StatusCodes.Status302Found, new ResponseDetails { Code = 1531, Details = "Username already in use by another account." });
             }
             else if (existResults.emailInUse)
             {
-                return StatusCode(StatusCodes.Status302Found, new AuthorizationDTO { Status = "Failure", Code = 311, Details = "Email address already in use by another account." });
+                return StatusCode(StatusCodes.Status302Found, new ResponseDetails { Code = 1532, Details = "Email address already in use by another account." });
             }
 
             // Make sure dro passes regex check
             if (!usernameRgx.IsMatch(dro.Username) && !emailRgx.IsMatch(dro.Email) && !passwordRgx.IsMatch(dro.Password))
             {
-                return StatusCode(StatusCodes.Status406NotAcceptable, new AuthorizationDTO { Status = "Failure", Code = 313, Details = "Request didn't pass regex check." });
+                return StatusCode(StatusCodes.Status406NotAcceptable, new ResponseDetails { Code = 1534, Details = "Request didn't pass regex check." });
             }
 
             bool isBlocked = _blockedCredentialsRepository.IsCredentialBlocked(dro.Email);
@@ -98,7 +84,7 @@ namespace HeyaChat_Authorization.Controllers
             // Also make sure requested email isn't blocked from creating new accounts
             if (isBlocked)
             {
-                return StatusCode(StatusCodes.Status302Found, new AuthorizationDTO { Status = "Failure", Code = 314, Details = "Email address blocked from creating new accounts." });
+                return StatusCode(StatusCodes.Status302Found, new ResponseDetails { Code = 1533, Details = "Email address blocked from creating new accounts." });
             }
 
             // Generate password salt and hash the password
@@ -152,7 +138,7 @@ namespace HeyaChat_Authorization.Controllers
             // Send email after everything else incase theres problems with the email sending
             _messageService.SendVerificationEmail(userId, dro.Email);
 
-            return StatusCode(StatusCodes.Status201Created, new AuthorizationDTO { Status = "Success", Code = 315, Details = "New user succesfully registered." });
+            return StatusCode(StatusCodes.Status201Created, new ResponseDetails { Code = 1570, Details = "New user succesfully registered." });
         }
 
         // Returns
@@ -166,7 +152,7 @@ namespace HeyaChat_Authorization.Controllers
             // UserId will be 0 if user with details cannot be found
             if (user.UserId <= 0)
             {
-                return StatusCode(StatusCodes.Status401Unauthorized, new AuthorizationDTO { Status = "Failure", Code = 410, Details = "User couldn't be found." });
+                return StatusCode(StatusCodes.Status401Unauthorized, new ContactDTO { Contact = "", Details = new ResponseDetails { Code = 1230, Details = "User couldn't be found." } });
             }
 
             // Hash the password from dro with salt from the user object and see if they match
@@ -175,7 +161,7 @@ namespace HeyaChat_Authorization.Controllers
             // Check that login details match
             if (droPasswordHash != user.PasswordHash || (dro.BiometricsKey != null && dro.BiometricsKey != user.BiometricsKey))
             {
-                return StatusCode(StatusCodes.Status401Unauthorized);
+                return StatusCode(StatusCodes.Status401Unauthorized, new ContactDTO { Contact = "", Details = new ResponseDetails { Code = 1231, Details = "User couldn't login." } });
             }
 
             // See if current device already exists in the database
@@ -205,10 +191,10 @@ namespace HeyaChat_Authorization.Controllers
                 {
                     Response.Headers.Authorization = _jwtService.GenerateToken(user.UserId, deviceResults.deviceId, "suspended");
 
-                    return StatusCode(StatusCodes.Status403Forbidden, new AuthorizationDTO { Status = "Failure", Code = 412, Details = "User is permanently suspended." });
+                    return StatusCode(StatusCodes.Status403Forbidden, new ContactDTO { Contact = "", Details = new ResponseDetails { Code = 1232, Details = "User is permanently suspended." } });
                 }
 
-                return StatusCode(StatusCodes.Status403Forbidden, new AuthorizationDTO { Status = "Failure", Code = 411, Details = "User is temporarily suspended." });
+                return StatusCode(StatusCodes.Status403Forbidden, new ContactDTO { Contact = "", Details = new ResponseDetails { Code = 1233, Details = "User is temporarily suspended." } });
             }
 
             // Read userdetails to define login flow
@@ -224,21 +210,30 @@ namespace HeyaChat_Authorization.Controllers
                 // temporary boolean till we actually implement text message sending
                 bool textMessageWorks = false;
 
+                string contact = "";
+                int code = 0;
+
                 // Check which type of mfa to use
                 if (user.Phone != null && userDetails.PhoneVerified && textMessageWorks != false)
                 {
+                    contact = _toolsService.MaskPhoneNumber(user.Phone);
+                    code = 1270;
+
                     // Send code as a text message
                     _messageService.SendVerificationTextMessage(user.UserId, user.Phone);
                 }
                 else
                 {
+                    contact = _toolsService.MaskEmail(user.Email);
+                    code = 1271;
+
                     // Send code as an email
                     _messageService.SendVerificationEmail(user.UserId, user.Email);
                 }
 
                 // Generate token after mfa code verification
 
-                return StatusCode(StatusCodes.Status202Accepted, new AuthorizationDTO { Status = "Success", Code = 420, Details = "Login succesful. Additional confirmation required." });
+                return StatusCode(StatusCodes.Status202Accepted, new ContactDTO { Contact = contact, Details = new ResponseDetails { Code = code, Details = "Login succesful. Additional confirmation required." } });
             }
 
             // Invalidate tokens for other devices to enforce only one device online policy
@@ -249,15 +244,17 @@ namespace HeyaChat_Authorization.Controllers
 
             if (userDetails.EmailVerified)
             {
-                return StatusCode(StatusCodes.Status200OK, new AuthorizationDTO { Status = "Success", Code = 421, Details = "Login succesful." });
+                return StatusCode(StatusCodes.Status200OK, new ContactDTO { Contact = "", Details = new ResponseDetails { Code = 1272, Details = "Login succesful." } });
             }
             else
             {
                 // Send email with verification code
                 _messageService.SendVerificationEmail(user.UserId, user.Email);
 
+                string contact = _toolsService.MaskEmail(user.Email);
+
                 // Return 206 to notify frontend of the required extra steps
-                return StatusCode(StatusCodes.Status200OK, new AuthorizationDTO { Status = "Success", Code = 422, Details = "Login succesful. Email confirmation required." });
+                return StatusCode(StatusCodes.Status200OK, new ContactDTO { Contact = contact, Details = new ResponseDetails { Code = 1273, Details = "Login succesful. Email confirmation required." } });
             }
         }
 
@@ -276,22 +273,22 @@ namespace HeyaChat_Authorization.Controllers
 
             if (tokenId > 0)
             {
-                return StatusCode(StatusCodes.Status200OK, new AuthorizationDTO { Status = "Success", Code = 511, Details = "Token invalidated. User logged out." });
+                return StatusCode(StatusCodes.Status200OK, new ResponseDetails { Code = 1670, Details = "Token invalidated. User logged out." });
             }
 
-            return StatusCode(StatusCodes.Status404NotFound, new AuthorizationDTO { Status = "Failure", Code = 510, Details = "Token not found or didn't belong to user." });
+            return StatusCode(StatusCodes.Status404NotFound, new ResponseDetails { Code = 1630, Details = "Token not found or didn't belong to user." });
         }
 
         // Returns
         // 200: User still logged in
-        [HttpGet]
+        [HttpPost]
         [TokenTypeAuthorize("login")]
         [Route("PingBackend")]
         public IActionResult PingBackend(UserDevice dro)
         {
             // All token related verifying and renewing is handled at middleware so just return 200
 
-            return StatusCode(StatusCodes.Status200OK, new AuthorizationDTO { Status = "Success", Code = 610, Details = "Token is valid. User still logged in." });
+            return StatusCode(StatusCodes.Status200OK, new ResponseDetails { Code = 1770, Details = "Token is valid. User still logged in." });
         }
 
 

@@ -1,9 +1,8 @@
 ﻿using HeyaChat_Authorization.AuthorizeAttributes;
 using HeyaChat_Authorization.DataObjects.DRO;
+using HeyaChat_Authorization.DataObjects.DTO.SubClasses;
 using HeyaChat_Authorization.Models;
-using HeyaChat_Authorization.Repositories;
 using HeyaChat_Authorization.Repositories.Interfaces;
-using HeyaChat_Authorization.Services;
 using HeyaChat_Authorization.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -88,14 +87,14 @@ namespace HeyaChat_Authorization.Controllers
         // Returns
         // 201: Password changed    304: Passwords didn't match   500: Problems saving changes to database
         [HttpPost, Authorize]
-        [TokenTypeAuthorize("password")]
+        [TokenTypeAuthorize("temporary", "login")]
         [Route("ChangePassword")]
         public IActionResult ChangePassword(PasswordChangeDRO dro)
         {
             // Check if passwords match
             if (dro.Password != dro.PasswordRepeat)
             {
-                return StatusCode(StatusCodes.Status304NotModified);
+                return StatusCode(StatusCodes.Status304NotModified, new ResponseDetails { Code = 1830, Details = "Passwords didn't match." });
             }
 
             // Get userId from token
@@ -121,7 +120,7 @@ namespace HeyaChat_Authorization.Controllers
 
             // User has to log in after password changing, so don't generate token here
 
-            return StatusCode(StatusCodes.Status201Created);
+            return StatusCode(StatusCodes.Status201Created, new ResponseDetails { Code = 1870, Details = "Password changed." });
         }
 
         // Returns

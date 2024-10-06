@@ -1,7 +1,8 @@
 ﻿using HeyaChat_Authorization.AuthorizeAttributes;
 using HeyaChat_Authorization.DataObjects.DRO;
+using HeyaChat_Authorization.DataObjects.DTO.SubClasses;
+using HeyaChat_Authorization.DataObjects.DTO;
 using HeyaChat_Authorization.Models;
-using HeyaChat_Authorization.Repositories;
 using HeyaChat_Authorization.Repositories.Interfaces;
 using HeyaChat_Authorization.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
@@ -29,7 +30,7 @@ namespace HeyaChat_Authorization.Controllers
         }
 
         // Returns
-        // 200: Verified succesfully    // 401: Incorrect code      500: Problems with the database
+        // 200: Verified succesfully    // 404: Incorrect code      500: Problems with the database
         [HttpPost, Authorize]
         [TokenTypeAuthorize("login")]
         [Route("VerifyEmail")]
@@ -43,7 +44,7 @@ namespace HeyaChat_Authorization.Controllers
 
             if (validCode.CodeId <= 0)
             {
-                return StatusCode(StatusCodes.Status401Unauthorized);
+                return StatusCode(StatusCodes.Status404NotFound, new ResponseDetails { Code = 1330, Details = "Code expired or doesn't belong to user." });
             }
 
             // Set code as used and update to database
@@ -56,20 +57,14 @@ namespace HeyaChat_Authorization.Controllers
 
             details.EmailVerified = true;
 
-            long affectedRowId = _userDetailsRepository.UpdateUserDetails(details);
+            _userDetailsRepository.UpdateUserDetails(details);
 
-            if (affectedRowId <= 0)
-            {
-                return StatusCode(StatusCodes.Status500InternalServerError);
-            }
-
-            return StatusCode(StatusCodes.Status200OK);
+            return StatusCode(StatusCodes.Status200OK, new ResponseDetails { Code = 1370, Details = "Code is valid and email has been updated as verified." });
         }
 
         // Returns
-        // 200: Verified succesfully    401: Incorrect code     500: Problems with the database
+        // 200: Verified succesfully    404: Incorrect code     500: Problems with the database
         [HttpPost, Authorize]
-        [TokenTypeAuthorize("password, login")]
         [Route("VerifyCode")]
         public IActionResult VerifyCode(VerifyDRO dro)
         {
@@ -82,20 +77,26 @@ namespace HeyaChat_Authorization.Controllers
             // CodeId being 0 indicates code wasn't valid
             if (validCode.CodeId <= 0)
             {
-                return StatusCode(StatusCodes.Status401Unauthorized);
+                return StatusCode(StatusCodes.Status404NotFound, new ResponseDetails { Code = 1130, Details = "Code expired or doesn't belong to user." });
             }
 
             // Set code as used and update to database
             validCode.Used = true;
 
+            // Get full device details with dro details
+            Device foundDevice = _devicesRepository.GetDeviceWithUUID(dro.Device.DeviceIdentifier);
+
+            // Add password type token to user. Type is important for restricting access to only certain methods
+            Request.Headers.Authorization = _jwtService.GenerateToken(userId, foundDevice.DeviceId, "temporary");
+
             long affectedRow = _codesRepository.UpdateCode(validCode);
 
             // If Code was correct, return 200 to proceed to the next step
-            return StatusCode(StatusCodes.Status200OK);
+            return StatusCode(StatusCodes.Status200OK, new ResponseDetails { Code = 1170, Details = "Code is valid." });
         }
 
         // Returns
-        // 200: Verified succesfully    401: Incorrect code
+        // 200: Verified succesfully    404: Incorrect code
         [HttpPost]                             
         [Route("VerifyMFA")]              
         public IActionResult VerifyMFA(VerifyDRO dro)
@@ -108,7 +109,7 @@ namespace HeyaChat_Authorization.Controllers
 
             if (validCode.CodeId <= 0)
             {
-                return StatusCode(StatusCodes.Status401Unauthorized);
+                return StatusCode(StatusCodes.Status404NotFound, new ResponseDetails { Code = 1430, Details = "Code expired or doesn't belong to user." });
             }
 
             // Set code as used and update to database
@@ -126,7 +127,7 @@ namespace HeyaChat_Authorization.Controllers
             // Generate token and add it to the authorization header
             Response.Headers.Authorization = _jwtService.GenerateToken(userId, device.DeviceId, "login");
 
-            return StatusCode(StatusCodes.Status200OK);
+            return StatusCode(StatusCodes.Status200OK, new ResponseDetails { Code = 1470, Details = "Code is valid." });
         }
 
 

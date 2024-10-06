@@ -2,10 +2,10 @@
 {
     public class UserDevice
     {
-        public string DeviceName { get; set; } = null!;
+        public string DeviceName { get; set; } = "";
 
         public Guid DeviceIdentifier { get; set; }
 
-        public string CountryCode { get; set; } = null!;
+        public string CountryCode { get; set; } = "";
     }
 }

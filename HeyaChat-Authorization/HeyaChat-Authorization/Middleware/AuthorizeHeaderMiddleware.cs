@@ -24,7 +24,7 @@ namespace HeyaChat_Authorization.Middleware
             var _deviceRepository = serviceProvider.GetRequiredService<IDevicesRepository>();
 
             // Check if Authorization header is present in the request and it's not empty
-            if (context.Request.Headers.ContainsKey("Authorization") && context.Request.Headers.Authorization != "")
+            if (context.Request.Headers.Authorization != "")
             {
                 // We also need device information from requests body. This SHOULD BE in every request made by frontend
                 UserDevice userDevice = await ReadDeviceFromBody(context);
@@ -89,11 +89,9 @@ namespace HeyaChat_Authorization.Middleware
 
                     if (jsonDocument.RootElement.TryGetProperty("device", out var deviceObject))
                     {
-                        string guidString = deviceObject.GetProperty("deviceIdentifier").ToString();
-
-                        userDevice.DeviceIdentifier = Guid.Parse(guidString);
+                        userDevice.DeviceIdentifier = Guid.Parse(deviceObject.GetProperty("deviceIdentifier").ToString());
                         userDevice.DeviceName = deviceObject.GetProperty("deviceName").ToString();
-                        userDevice.CountryCode = deviceObject.GetProperty("countryTag").ToString();
+                        userDevice.CountryCode = deviceObject.GetProperty("countryCode").ToString();
                     }
                 }
                 catch (Exception ex)
@@ -101,7 +99,7 @@ namespace HeyaChat_Authorization.Middleware
                     throw new FormatException(ex.Message);
                 }
 
-                // Remember to rewing position back to 0 or controller methods will have trouble reading json from body
+                // Remember to rewind position back to 0 or controller methods will have trouble reading json from body
                 context.Request.Body.Position = 0;
             }
 
