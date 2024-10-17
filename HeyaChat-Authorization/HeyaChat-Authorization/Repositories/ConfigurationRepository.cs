@@ -30,23 +30,6 @@ namespace HeyaChat_Authorization.Repositories
             throw new NullReferenceException($"Unable to read applicationname in dataprotection from configuration.");
         }
 
-        public string GetKeyVaultUrl()
-        {
-            if (_config == null)
-            {
-                throw new NullReferenceException("Configuration is null.");
-            }
-
-            string result = _config.GetSection("dataprotection:keyvaulturl").Value ?? "";
-
-            if (result != "")
-            {
-                return result;
-            }
-
-            throw new NullReferenceException($"Unable to read keyvaulturl in dataprotection from configuration.");
-        }
-
         public TimeSpan GetTokenLifeTime()
         {
             if (_config == null)
