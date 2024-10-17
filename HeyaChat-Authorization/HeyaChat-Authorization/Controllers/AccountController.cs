@@ -1,5 +1,6 @@
 ﻿using HeyaChat_Authorization.AuthorizeAttributes;
 using HeyaChat_Authorization.DataObjects.DRO;
+using HeyaChat_Authorization.DataObjects.DRO.SubClasses;
 using HeyaChat_Authorization.DataObjects.DTO.SubClasses;
 using HeyaChat_Authorization.Models;
 using HeyaChat_Authorization.Repositories.Interfaces;
@@ -19,9 +20,10 @@ namespace HeyaChat_Authorization.Controllers
         private IUsersRepository _usersRepository;
         private IDevicesRepository _devicesRepository;
         private IAuditLogsRepository _auditLogsRepository;
+        private IDeleteRequestsRepository _deleteRequestsRepository;
 
         public AccountController(IUsersRepository usersRepository, IDevicesRepository devicesRepository, IAuditLogsRepository auditLogsRepository,
-            IJwtService jwtService, IHasherService hasherService)
+            IJwtService jwtService, IHasherService hasherService, IDeleteRequestsRepository deleteRequestsRepository)
         {
             _jwtService = jwtService ?? throw new NullReferenceException(nameof(jwtService));
             _hasherService = hasherService ?? throw new NullReferenceException(nameof(hasherService));
@@ -29,6 +31,7 @@ namespace HeyaChat_Authorization.Controllers
             _usersRepository = usersRepository ?? throw new NullReferenceException(nameof(usersRepository));
             _devicesRepository = devicesRepository ?? throw new NullReferenceException(nameof(devicesRepository));
             _auditLogsRepository = auditLogsRepository ?? throw new NullReferenceException(nameof(auditLogsRepository));
+            _deleteRequestsRepository = deleteRequestsRepository ?? throw new NullReferenceException(nameof(deleteRequestsRepository));
         }
 
         //Returns
@@ -94,7 +97,7 @@ namespace HeyaChat_Authorization.Controllers
             // Check if passwords match
             if (dro.Password != dro.PasswordRepeat)
             {
-                return StatusCode(StatusCodes.Status304NotModified, new ResponseDetails { Code = 1830, Details = "Passwords didn't match." });
+                return StatusCode(StatusCodes.Status304NotModified, new DetailsDTO { Code = 1830, Details = "Passwords didn't match." });
             }
 
             // Get userId from token
@@ -120,19 +123,54 @@ namespace HeyaChat_Authorization.Controllers
 
             // User has to log in after password changing, so don't generate token here
 
-            return StatusCode(StatusCodes.Status201Created, new ResponseDetails { Code = 1870, Details = "Password changed." });
+            return StatusCode(StatusCodes.Status201Created, new DetailsDTO { Code = 1870, Details = "Password changed." });
         }
 
         // Returns
-        //
+        // 201: DeleteRequest created and added to database     403: User already has an active delete request     500: Problems saving changes to database
         [HttpDelete, Authorize]
         [TokenTypeAuthorize("login, suspended")]
-        [Route("DeleteAccount")]
-        public IActionResult DeleteAccount()
+        [Route("RequestDelete")]
+        public IActionResult RequestDelete(UserDevice device)
         {
-            // Create delete request and wait 60 days
+            // Get userId from token
+            long userId = _jwtService.GetClaims(Request).userId;
 
-            return StatusCode(StatusCodes.Status501NotImplemented);
+            // Try finding pre-existing delete requests. We'd like to avoid multiple delete requests for one account
+            var result = _deleteRequestsRepository.GetDeleteRequestByUserId(userId);
+
+            if (result.DeleteId != 0)
+            {
+                return StatusCode(StatusCodes.Status403Forbidden, new DetailsDTO { Code = 1930, Details = "User already has an active delete request." });
+            }
+
+            // Create deleterequest object and add it to database
+            DeleteRequest request = new DeleteRequest
+            {
+                UserId = userId,
+                // DateRequested is automatically added by the database
+                Fulfilled = false
+            };
+
+            _deleteRequestsRepository.InsertDeleteRequest(request);
+
+            return StatusCode(StatusCodes.Status201Created, new DetailsDTO { Code = 1970, Details = "Deletion requested. Account will be deleted in 60 days." });
+        }
+
+        // Returns
+        // 201: DeleteRequest deleted    500: Problems saving changes to database
+        [HttpDelete, Authorize]
+        [TokenTypeAuthorize("login, suspended")]
+        [Route("UndoRequestDelete")]
+        public IActionResult UndoRequestDelete(UserDevice device)
+        {
+            // Get userId from token
+            long userId = _jwtService.GetClaims(Request).userId;
+
+            // Remove deleterequest from db
+            _deleteRequestsRepository.DeleteDeleteRequest(userId);
+
+            return StatusCode(StatusCodes.Status201Created, new DetailsDTO { Code = 2070, Details = "Delete request removed." });
         }
 
 

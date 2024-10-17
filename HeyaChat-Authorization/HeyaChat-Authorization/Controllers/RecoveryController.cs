@@ -43,11 +43,11 @@ namespace HeyaChat_Authorization.Controllers
         public IActionResult Recover(RecoveryDRO dro)
         {
             // Try finding requested email
-            User user = _usersRepository.GetUserByUsernameOrEmail(dro.Email);
+            User user = _usersRepository.GetUserByUsernameOrEmail(dro.Contact);
 
             if (user.UserId <= 0)
             {
-                return StatusCode(StatusCodes.Status404NotFound, new ContactDTO { Contact = "", Details = new ResponseDetails { Code = 1030, Details = "User matching requested login couldn't be found." } });
+                return StatusCode(StatusCodes.Status404NotFound, new ContactDTO { Contact = "", Details = new DetailsDTO { Code = 1030, Details = "User matching requested login couldn't be found." } });
             }
 
             // In the future we need logic for handling password changing requests from new devices & countries to prevent account theft
@@ -87,9 +87,60 @@ namespace HeyaChat_Authorization.Controllers
                 _messageService.SendRecoveryEmail(user.UserId, user.Email);
             }
 
-            return StatusCode(StatusCodes.Status200OK, new ContactDTO { Contact = contact, Details = new ResponseDetails { Code = code, Details = "Verification code sent." } });
+            return StatusCode(StatusCodes.Status200OK, new ContactDTO { Contact = contact, Details = new DetailsDTO { Code = code, Details = "Verification code sent." } });
         }
 
+        // Returns
+        // 200: New code sent to user    404: Contact didn't below to any user
+        [HttpPost]
+        [Route("RequestNewCode")]
+        public IActionResult RequestNewCode(RecoveryDRO dro)
+        {
+            // Try finding requested email
+            User user = _usersRepository.GetUserByUsernameOrEmail(dro.Contact);
+
+            if (user.UserId <= 0)
+            {
+                return StatusCode(StatusCodes.Status404NotFound, new DetailsDTO { Code = 2130, Details = "User matching requested login couldn't be found." } );
+            }
+
+            // Add users current device to database if it doesn't exist there or get DeviceId of already saved device
+            Device device = new Device
+            {
+                DeviceName = dro.Device.DeviceName,
+                DeviceIdentifier = dro.Device.DeviceIdentifier,
+                CountryTag = dro.Device.CountryCode,
+                // UsedAt is handled by the database
+                UserId = user.UserId
+            };
+
+            var deviceResults = _devicesRepository.InsertDeviceIfDoesntExist(device);
+
+            // Read userdetails and send recovery code based on verification status of email and phone number
+            var userDetails = _userDetailsRepository.GetUserDetailsByUserId(user.UserId);
+
+            string contact = "";
+            int code = 0;
+
+            if (user.Phone != null && userDetails.EmailVerified && userDetails.PhoneVerified) // Prioritize phone verifying over email
+            {
+                // Mask users phone number to not entirely leak it
+                contact = _toolsService.MaskPhoneNumber(user.Phone);
+                code = 2171;
+
+                _messageService.SendVerificationTextMessage(user.UserId, user.Phone);
+            }
+            else if (userDetails.EmailVerified) // Send code to email if phone isn't verified
+            {
+                // No need to mask users email since thats what they used to request
+                contact = user.Email;
+                code = 2170;
+
+                _messageService.SendRecoveryEmail(user.UserId, user.Email);
+            }
+
+            return StatusCode(StatusCodes.Status200OK, new DetailsDTO { Code = code, Details = "Verification code sent." } );
+        }
 
     }
 }

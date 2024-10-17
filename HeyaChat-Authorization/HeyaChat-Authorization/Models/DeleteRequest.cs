@@ -10,7 +10,7 @@ public partial class DeleteRequest
 
     public long UserId { get; set; }
 
-    public DateTime? DateRequested { get; set; }
+    public DateTime DateRequested { get; set; }
 
     public bool? Fulfilled { get; set; }
 

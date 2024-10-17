@@ -14,7 +14,7 @@ namespace HeyaChat_Authorization.Repositories
             _context = context ?? throw new NullReferenceException(nameof(context));
         }
 
-        public (bool suspended, bool permanent) IsCurrentlySuspended(long userId)
+        public Suspension IsCurrentlySuspended(long userId)
         {
             try
             {
@@ -22,18 +22,7 @@ namespace HeyaChat_Authorization.Repositories
                                      where (suspension.ExpiresAt > DateTime.UtcNow || suspension.ExpiresAt == null) && suspension.LiftedAt == null && suspension.UserId == userId
                                      select suspension).FirstOrDefault() ?? new Suspension();
 
-                if (result.SuspensionId != 0)
-                {
-                    if (result.ExpiresAt == null)
-                    {
-                        return (suspended: true, permanent: true);
-                    }
-
-                    return (suspended: true, permanent: false);
-                }
-
-
-                return (suspended: false, permanent: false);
+                return result;
             }
             catch (Exception ex)
             {

@@ -1,6 +1,6 @@
 ﻿namespace HeyaChat_Authorization.DataObjects.DTO.SubClasses
 {
-    public class ResponseDetails
+    public class DetailsDTO
     {
         public int Code { get; set; }
 

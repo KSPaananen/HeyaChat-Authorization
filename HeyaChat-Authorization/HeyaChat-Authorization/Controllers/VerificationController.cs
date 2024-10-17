@@ -44,7 +44,7 @@ namespace HeyaChat_Authorization.Controllers
 
             if (validCode.CodeId <= 0)
             {
-                return StatusCode(StatusCodes.Status404NotFound, new ResponseDetails { Code = 1330, Details = "Code expired or doesn't belong to user." });
+                return StatusCode(StatusCodes.Status404NotFound, new DetailsDTO { Code = 1330, Details = "Code expired or doesn't belong to user." });
             }
 
             // Set code as used and update to database
@@ -59,7 +59,7 @@ namespace HeyaChat_Authorization.Controllers
 
             _userDetailsRepository.UpdateUserDetails(details);
 
-            return StatusCode(StatusCodes.Status200OK, new ResponseDetails { Code = 1370, Details = "Code is valid and email has been updated as verified." });
+            return StatusCode(StatusCodes.Status200OK, new DetailsDTO { Code = 1370, Details = "Code is valid and email has been updated as verified." });
         }
 
         // Returns
@@ -77,7 +77,7 @@ namespace HeyaChat_Authorization.Controllers
             // CodeId being 0 indicates code wasn't valid
             if (validCode.CodeId <= 0)
             {
-                return StatusCode(StatusCodes.Status404NotFound, new ResponseDetails { Code = 1130, Details = "Code expired or doesn't belong to user." });
+                return StatusCode(StatusCodes.Status404NotFound, new DetailsDTO { Code = 1130, Details = "Code expired or doesn't belong to user." });
             }
 
             // Set code as used and update to database
@@ -92,7 +92,7 @@ namespace HeyaChat_Authorization.Controllers
             long affectedRow = _codesRepository.UpdateCode(validCode);
 
             // If Code was correct, return 200 to proceed to the next step
-            return StatusCode(StatusCodes.Status200OK, new ResponseDetails { Code = 1170, Details = "Code is valid." });
+            return StatusCode(StatusCodes.Status200OK, new DetailsDTO { Code = 1170, Details = "Code is valid." });
         }
 
         // Returns
@@ -109,7 +109,7 @@ namespace HeyaChat_Authorization.Controllers
 
             if (validCode.CodeId <= 0)
             {
-                return StatusCode(StatusCodes.Status404NotFound, new ResponseDetails { Code = 1430, Details = "Code expired or doesn't belong to user." });
+                return StatusCode(StatusCodes.Status404NotFound, new DetailsDTO { Code = 1430, Details = "Code expired or doesn't belong to user." });
             }
 
             // Set code as used and update to database
@@ -127,7 +127,7 @@ namespace HeyaChat_Authorization.Controllers
             // Generate token and add it to the authorization header
             Response.Headers.Authorization = _jwtService.GenerateToken(userId, device.DeviceId, "login");
 
-            return StatusCode(StatusCodes.Status200OK, new ResponseDetails { Code = 1470, Details = "Code is valid." });
+            return StatusCode(StatusCodes.Status200OK, new DetailsDTO { Code = 1470, Details = "Code is valid." });
         }
 
 

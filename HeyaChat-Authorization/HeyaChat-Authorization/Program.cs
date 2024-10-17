@@ -29,7 +29,7 @@ builder.Services.AddRateLimiter(options =>
     options.AddFixedWindowLimiter("fixed", options =>
     {
         options.PermitLimit = _configurationRepository.GetPermitLimit();
-        options.Window = _configurationRepository.GetTimeWindow(); ;
+        options.Window = _configurationRepository.GetTimeWindow();
         options.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
         options.QueueLimit = _configurationRepository.GetQueueLimit();
     });
@@ -122,6 +122,7 @@ builder.Services.AddScoped<ITokensRepository, TokensRepository>();
 builder.Services.AddScoped<ISuspensionsRepository, SuspensionsRepository>();
 builder.Services.AddScoped<IAuditLogsRepository, AuditLogsRepository>();
 builder.Services.AddScoped<IBlockedCredentialsRepository, BlockedCredentialsRepository>();
+builder.Services.AddScoped<IDeleteRequestsRepository, DeleteRequestsRepository>();
 
 // Configure logging
 builder.Logging.ClearProviders();

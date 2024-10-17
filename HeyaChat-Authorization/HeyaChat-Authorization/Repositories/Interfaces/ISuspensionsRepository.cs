@@ -1,7 +1,9 @@
-﻿namespace HeyaChat_Authorization.Repositories.Interfaces
+﻿using HeyaChat_Authorization.Models;
+
+namespace HeyaChat_Authorization.Repositories.Interfaces
 {
     public interface ISuspensionsRepository
     {
-        (bool suspended, bool permanent) IsCurrentlySuspended(long userId);
+        Suspension IsCurrentlySuspended(long userId);
     }
 }
