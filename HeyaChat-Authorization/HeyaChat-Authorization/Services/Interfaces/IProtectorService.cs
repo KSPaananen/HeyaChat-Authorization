@@ -3,6 +3,7 @@
     public interface IProtectorService
     {
         string ProtectData(string data);
+
         string UnProtectData(string data);
     }
 }
