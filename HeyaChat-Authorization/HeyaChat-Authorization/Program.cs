@@ -111,6 +111,7 @@ builder.Services.AddScoped<IJwtService, JwtService>();
 builder.Services.AddScoped<IMessageService, MessageService>();
 builder.Services.AddScoped<IHasherService, HasherService>();
 builder.Services.AddScoped<IToolsService, ToolsService>();
+builder.Services.AddScoped<IProtectorService, ProtectorService>();
 
 // Repositories
 builder.Services.AddScoped<IConfigurationRepository, ConfigurationRepository>();
@@ -153,6 +154,7 @@ else
 
 app.UseMiddleware<ExceptionHandlerMiddleware>();
 app.UseMiddleware<AuthorizeHeaderMiddleware>();
+
 app.UseRateLimiter();
 app.UseHttpsRedirection();
 app.UseAuthentication();
