@@ -7,9 +7,9 @@ namespace HeyaChat_Authorization.Services
     {
         private IDataProtector _protector;
 
-        public ProtectorService(IDataProtector protector)
+        public ProtectorService(IDataProtectionProvider protector)
         {
-            _protector = protector ?? throw new NullReferenceException(nameof(protector));
+            _protector = protector.CreateProtector("HeyaChat.Auth");
         }
 
         public string ProtectData(string data)

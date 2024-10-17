@@ -60,7 +60,7 @@ string certificatePassword = _configurationRepository.GetCertificatePassword() ?
 
 X509Certificate2 certificate = new X509Certificate2(certificatePath, certificatePassword);
 
-// Data protection is fully configured, but currently not in use
+// Data protection is fully configured, but not currently in use
 builder.Services.AddDataProtection() // 26/9/2024 Persisting to database doesn't work with postgresql's entityframework
     .PersistKeysToFileSystem(new DirectoryInfo(_configurationRepository.GetKeyStoragePath()))
     .ProtectKeysWithCertificate(certificate)

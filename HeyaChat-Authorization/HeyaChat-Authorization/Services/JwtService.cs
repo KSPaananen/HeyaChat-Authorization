@@ -2,7 +2,6 @@
 using HeyaChat_Authorization.Models;
 using HeyaChat_Authorization.Repositories.Interfaces;
 using HeyaChat_Authorization.Services.Interfaces;
-using Microsoft.AspNetCore.DataProtection;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
