@@ -4,6 +4,8 @@
     {
         string GetApplicationName();
 
+        string GetKeyVaultUrl();
+
         TimeSpan GetTokenLifeTime();
 
         TimeSpan GetTokenRenewTime();
