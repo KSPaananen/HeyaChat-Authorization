@@ -18,7 +18,9 @@
 
         byte[] GetEncryptionKey();
 
-        string GetConnectionString();
+        string GetAzurePostGreSqlServerConnectionString();
+
+        string GetPostGreSqlServerConnectionString();
 
         string GetCertificatePath();
 

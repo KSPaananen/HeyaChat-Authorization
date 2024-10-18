@@ -38,7 +38,7 @@ public partial class AuthorizationDBContext : DbContext
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
-        optionsBuilder.UseNpgsql(_configurationRepository.GetConnectionString(), builder =>
+        optionsBuilder.UseNpgsql(_configurationRepository.GetAzurePostGreSqlServerConnectionString(), builder =>
         {
             builder.EnableRetryOnFailure(5, TimeSpan.FromSeconds(5), null);
         });

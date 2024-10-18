@@ -143,7 +143,25 @@ namespace HeyaChat_Authorization.Repositories
             throw new NullReferenceException($"Unable to read key in encryption from configuration.");
         }
 
-        public string GetConnectionString()
+        public string GetAzurePostGreSqlServerConnectionString()
+        {
+            if (_config == null)
+            {
+                throw new NullReferenceException("Configuration is null.");
+            }
+
+            // Use GetSection since connectionstrins is lowercase in appsettings
+            string result = _config.GetConnectionString("Azure") ?? "";
+
+            if (result != "")
+            {
+                return result;
+            }
+
+            throw new NullReferenceException($"Unable to read connection string in connectionstrings from configuration.");
+        }
+
+        public string GetPostGreSqlServerConnectionString()
         {
             if (_config == null)
             {
