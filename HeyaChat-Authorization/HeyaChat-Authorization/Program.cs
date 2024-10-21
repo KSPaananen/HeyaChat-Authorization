@@ -41,15 +41,15 @@ builder.Services.AddCors(options =>
     {
         options.AllowCredentials();
         options.SetIsOriginAllowed(org => new Uri(org).Host == "localhost");
-        options.WithExposedHeaders("Authorization"); // Define custom headers here
+        options.WithExposedHeaders("Authorization");
         options.AllowAnyHeader();
         options.AllowAnyMethod();
     });
     options.AddPolicy("Production", options =>
-    {   // Configure these later
+    {
         options.WithExposedHeaders("Authorization");
         options.WithMethods("POST", "PUT", "GET", "DELETE");
-        options.WithOrigins("");
+        options.AllowAnyOrigin();
         options.AllowAnyHeader();
     });
 });
@@ -77,7 +77,7 @@ builder.Services.AddAuthentication(options =>
 #if DEBUG
     options.IncludeErrorDetails = true;
 #else
-    options.IncludeErrorDetsils = false;
+    options.IncludeErrorDetails = false;
 #endif
 
     options.RequireHttpsMetadata = true;
