@@ -161,7 +161,7 @@ namespace HeyaChat_Authorization.Controllers
             var droPasswordHash = _hasherService.Hash(dro.Password, user.PasswordSalt);
 
             // Check that login details match
-            if (droPasswordHash != user.PasswordHash || (dro.BiometricsKey != null && dro.BiometricsKey != user.BiometricsKey))
+            if (droPasswordHash != user.PasswordHash || (dro.BiometricsKey != user.BiometricsKey && dro.Login == "" && dro.Password == ""))
             {
                 return StatusCode(StatusCodes.Status401Unauthorized, new LoginDTO { Contact = "", Suspension = new SuspensionDTO { Reason = "", Expires = "" }, Details = new DetailsDTO { Code = 1231, Details = "User couldn't login." } });
             }

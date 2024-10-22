@@ -4,13 +4,7 @@ FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
 USER app
 WORKDIR /app
 
-# Development 7000 http 7001 https
-EXPOSE 7000 
-EXPOSE 7001
-
-# Production 8000 http 8001 https
-EXPOSE 8000 
-EXPOSE 8001 
+EXPOSE 80
 
 # Define enviroment in launchSettings.json
 
