@@ -6,7 +6,8 @@ WORKDIR /app
 
 EXPOSE 80
 
-# Define enviroment in launchSettings.json
+# Copy email templates from EmailTemplates folder to container
+COPY ./HeyaChat-Authorization/EmailTemplates /app/EmailTemplates
 
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 ARG BUILD_CONFIGURATION=Release

@@ -34,7 +34,7 @@ namespace HeyaChat_Authorization.Services
             sender = configurationRepository.GetEmailSender();
             password = _configurationRepository.GetEmailPassword();
 
-            _folderPath = $"{Environment.CurrentDirectory}/EmailTemplates";
+            _folderPath = $"/app/EmailTemplates";
 
             _client = new SmtpClient
             {
