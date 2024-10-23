@@ -2,12 +2,10 @@
 
 namespace HeyaChat_Authorization.DataObjects.DRO
 {
-    public class VerifyDRO
+    public class VerifyEmailDRO
     {
         public string Code { get; set; } = "";
 
-        public string Email { get; set; } = "";
-
-        public UserDevice Device { get; set; } = null!;
+        public UserDevice Device {  get; set; } = null!;
     }
 }

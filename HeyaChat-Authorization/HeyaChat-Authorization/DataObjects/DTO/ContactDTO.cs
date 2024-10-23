@@ -6,6 +6,6 @@ namespace HeyaChat_Authorization.DataObjects.DTO
     {
         public string Contact { get; set; } = "";
 
-        public DetailsDTO Details { get; set; } = null!;
+        public DetailsDTO Details { get; set; } = new DetailsDTO();
     }
 }

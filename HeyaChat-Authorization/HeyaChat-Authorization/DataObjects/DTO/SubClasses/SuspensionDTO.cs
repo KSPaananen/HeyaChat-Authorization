@@ -2,8 +2,8 @@
 {
     public class SuspensionDTO
     {
-        public string? Reason { get; set; } 
+        public string? Reason { get; set; } = "";
 
-        public string? Expires { get; set; }
+        public string? Expires { get; set; } = "";
     }
 }

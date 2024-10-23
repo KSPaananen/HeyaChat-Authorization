@@ -25,6 +25,7 @@ namespace HeyaChat_Authorization.Middleware
             var _deviceRepository = serviceProvider.GetRequiredService<IDevicesRepository>();
 
             // Check if Authorization header is present in the request and it's not empty
+            
             if (context.Request.Headers.Authorization != StringValues.Empty)
             {
                 // We also need device information from requests body. This SHOULD BE in every request made by frontend
