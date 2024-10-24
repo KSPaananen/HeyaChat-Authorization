@@ -25,7 +25,6 @@ namespace HeyaChat_Authorization.Middleware
             var _deviceRepository = serviceProvider.GetRequiredService<IDevicesRepository>();
 
             // Check if Authorization header is present in the request and it's not empty
-            
             if (context.Request.Headers.Authorization != StringValues.Empty)
             {
                 // We also need device information from requests body. This SHOULD BE in every request made by frontend
@@ -41,7 +40,7 @@ namespace HeyaChat_Authorization.Middleware
                     long userId = claims.userId;
                     string type = claims.type;
 
-                    // Check if jti in token is valid. VerifyToken will automatically renew token if its below set renew time.
+                    // Check if jti in token is valid. VerifyToken() will automatically renew token if its below set renew time.
                     var tokenResults = _jwtService.VerifyToken(jti, userDevice);
 
                     // Proceed to next middleware if token was valid. Throw AccessViolation if no active jti was found with users device, thus they're logged out
@@ -89,11 +88,11 @@ namespace HeyaChat_Authorization.Middleware
                 {
                     JsonDocument jsonDocument = JsonDocument.Parse(body);
 
-                    if (jsonDocument.RootElement.TryGetProperty("device", out var deviceObject))
+                    if (jsonDocument.RootElement.TryGetProperty("Device", out var deviceObject))
                     {
-                        userDevice.DeviceIdentifier = Guid.Parse(deviceObject.GetProperty("deviceIdentifier").ToString());
-                        userDevice.DeviceName = deviceObject.GetProperty("deviceName").ToString();
-                        userDevice.CountryCode = deviceObject.GetProperty("countryCode").ToString();
+                        userDevice.DeviceIdentifier = Guid.Parse(deviceObject.GetProperty("DeviceIdentifier").ToString());
+                        userDevice.DeviceName = deviceObject.GetProperty("DeviceName").ToString();
+                        userDevice.CountryCode = deviceObject.GetProperty("CountryCode").ToString();
                     }
                 }
                 catch (Exception ex)

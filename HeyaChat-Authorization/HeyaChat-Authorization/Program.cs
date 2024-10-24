@@ -54,18 +54,18 @@ builder.Services.AddCors(options =>
     });
 });
 
-//// Configure certificate for use with data protection
-//string certificatePath = _configurationRepository.GetCertificatePath() ?? throw new NullReferenceException("Certificate filepath null.");
-//string certificatePassword = _configurationRepository.GetCertificatePassword() ?? throw new NullReferenceException("Certificate password null.");
+// Configure certificate for use with data protection
+string certificatePath = _configurationRepository.GetCertificatePath() ?? throw new NullReferenceException("Certificate filepath null.");
+string certificatePassword = _configurationRepository.GetCertificatePassword() ?? throw new NullReferenceException("Certificate password null.");
 
-//X509Certificate2 certificate = new X509Certificate2(certificatePath, certificatePassword);
+X509Certificate2 certificate = new X509Certificate2(certificatePath, certificatePassword);
 
-//// Data protection is fully configured, but not currently in use
-//builder.Services.AddDataProtection() // 26/9/2024 Persisting to database doesn't work with postgresql's entityframework
-//    .PersistKeysToFileSystem(new DirectoryInfo(_configurationRepository.GetKeyStoragePath()))
-//    .ProtectKeysWithCertificate(certificate)
-//    .SetDefaultKeyLifetime(_configurationRepository.GetAverageKeyLifetime())
-//    .SetApplicationName(_configurationRepository.GetApplicationName());
+// Data protection is fully configured, but not currently in use
+builder.Services.AddDataProtection() // 26/9/2024 Persisting to database doesn't work with postgresql's entityframework
+    .PersistKeysToFileSystem(new DirectoryInfo(_configurationRepository.GetKeyStoragePath()))
+    .ProtectKeysWithCertificate(certificate)
+    .SetDefaultKeyLifetime(_configurationRepository.GetAverageKeyLifetime())
+    .SetApplicationName(_configurationRepository.GetApplicationName());
 
 builder.Services.AddAuthentication(options =>
 {
