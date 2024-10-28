@@ -76,7 +76,7 @@ namespace HeyaChat_Authorization.Controllers
             }
 
             // Make sure dro passes regex check
-            if (!usernameRgx.IsMatch(dro.Username) && !emailRgx.IsMatch(dro.Email) && !passwordRgx.IsMatch(dro.Password))
+            if (!usernameRgx.IsMatch(dro.Username) || !emailRgx.IsMatch(dro.Email) || !passwordRgx.IsMatch(dro.Password))
             {
                 return StatusCode(StatusCodes.Status406NotAcceptable, new DetailsDTO { Code = 1534, Details = "Request didn't pass regex check." });
             }
@@ -204,7 +204,7 @@ namespace HeyaChat_Authorization.Controllers
 
             if (foundDelRequest.DeleteId != 0)
             {
-                var daysLeft = Math.Abs((foundDelRequest.DateRequested - DateTime.Now).TotalDays);
+                int daysLeft = (int)Math.Abs((foundDelRequest.DateRequested - DateTime.Now).TotalDays);
 
                 return StatusCode(StatusCodes.Status406NotAcceptable, new LoginDTO { Contact = "", Suspension = { Reason = "", Expires = "" }, Details = new DetailsDTO { Code = 1234, Details = $"User has an active delete request. Account will be deleted in {daysLeft}." } });
             }
@@ -219,14 +219,11 @@ namespace HeyaChat_Authorization.Controllers
             // MFA enabled and logging in from a new device
             if (deviceResults.alreadyExisted == false && userDetails.MfaEnabled)
             {
-                // temporary boolean till we actually implement text message sending
-                bool textMessageWorks = false;
-
                 string contact = "";
                 int code = 0;
 
                 // Check which type of mfa to use
-                if (user.Phone != null && userDetails.PhoneVerified && textMessageWorks != false)
+                if (user.Phone != null && userDetails.PhoneVerified)
                 {
                     contact = _toolsService.MaskPhoneNumber(user.Phone);
                     code = 1270;
