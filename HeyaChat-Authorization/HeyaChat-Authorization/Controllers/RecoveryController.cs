@@ -25,7 +25,7 @@ namespace HeyaChat_Authorization.Controllers
         private IDevicesRepository _devicesRepository;
 
         public RecoveryController(IUsersRepository usersRepository, IUserDetailsRepository userDetailsRepository, IDevicesRepository devicesRepository, IMessageService messageService, 
-            IJwtService jwtService, IAuditLogsRepository auditLogsRepository, IToolsService toolsService)
+            IJwtService jwtService, IToolsService toolsService)
         {
             _messageService = messageService ?? throw new NullReferenceException(nameof(messageService));
             _jwtService = jwtService ?? throw new NullReferenceException(nameof(jwtService));
