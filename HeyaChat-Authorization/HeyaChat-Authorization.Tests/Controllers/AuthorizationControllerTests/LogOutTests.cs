@@ -59,6 +59,20 @@ namespace HeyaChat_Authorization.Tests.Controllers.AuthorizationControllerTests
         }
 
         [Fact]
+        public void AuthorizationController_LogOut_Returns401()
+        {
+            // Arrange
+            var dro = new UserDevice() { DeviceName = "testname", DeviceIdentifier = new Guid(), CountryCode = "tes" };
+
+            // Act
+            var result = _controller.LogOut(dro) as UnauthorizedResult ?? new UnauthorizedResult();
+
+            // Assert
+            result.Should().NotBeNull();
+            result.StatusCode.Should().Be(StatusCodes.Status401Unauthorized);
+        }
+
+        [Fact]
         public void AuthorizationController_LogOut_Returns404()
         {
             // Arrange

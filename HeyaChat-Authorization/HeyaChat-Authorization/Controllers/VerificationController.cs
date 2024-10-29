@@ -1,7 +1,6 @@
 ﻿using HeyaChat_Authorization.AuthorizeAttributes;
 using HeyaChat_Authorization.DataObjects.DRO;
 using HeyaChat_Authorization.DataObjects.DTO.SubClasses;
-using HeyaChat_Authorization.DataObjects.DTO;
 using HeyaChat_Authorization.Models;
 using HeyaChat_Authorization.Repositories.Interfaces;
 using HeyaChat_Authorization.Services.Interfaces;
@@ -99,8 +98,8 @@ namespace HeyaChat_Authorization.Controllers
 
         // Returns
         // 200: Verified succesfully    404: Incorrect code
-        [HttpPost]                             
-        [Route("VerifyMFA")]              
+        [HttpPost]
+        [Route("VerifyMFA")]
         public IActionResult VerifyMFA(VerifyDRO dro)
         {
             // Get userid with email to verify code
