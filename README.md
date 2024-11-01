@@ -2,7 +2,7 @@
 Authorization backend for Heya!Chat
 
 ## Running the application
-### Development
+### Development (local)
 1. Create and configure an `appsettings.json` file with this template:
 ```
 {
