@@ -1,17 +1,16 @@
 ﻿using HeyaChat_Authorization.Models;
 using HeyaChat_Authorization.Repositories.Interfaces;
 using HeyaChat_Authorization.Services.Interfaces;
+using System.IO.Abstractions;
 using System.Net;
 using System.Net.Mail;
-
-//
-// Look into AWS SES closer to release
-//
 
 namespace HeyaChat_Authorization.Services
 {
     public class MessageService : IMessageService
     {
+        private IFileSystem _fileSystem;
+
         private IConfigurationRepository _configurationRepository;
         private ICodesRepository _codesRepository;
 
@@ -24,8 +23,10 @@ namespace HeyaChat_Authorization.Services
 
         private SmtpClient _client;
 
-        public MessageService(IConfigurationRepository configurationRepository, ICodesRepository codesRepository)
+        public MessageService(IConfigurationRepository configurationRepository, ICodesRepository codesRepository, IFileSystem fileSystem)
         {
+            _fileSystem = fileSystem ?? throw new NullReferenceException(nameof(fileSystem));
+
             _configurationRepository = configurationRepository ?? throw new NullReferenceException(nameof(configurationRepository));
             _codesRepository = codesRepository ?? throw new NullReferenceException(nameof(codesRepository));
 
@@ -45,7 +46,7 @@ namespace HeyaChat_Authorization.Services
             };
         }
 
-        public void SendRecoveryEmail(long userId, string email)
+        public Task SendRecoveryEmail(long userId, string email)
         {
             // Generate code
             string code = GenerateCode();
@@ -65,7 +66,7 @@ namespace HeyaChat_Authorization.Services
             string subject = "Here's your account recovery code!";
 
             // Read html file to string
-            string htmlBody = File.ReadAllText($"{_folderPath}/RecoveryEmail.html");
+            string htmlBody = _fileSystem.File.ReadAllText($"{_folderPath}/RecoveryEmail.html");
 
             // Insert dynamic values to body string
             string body = htmlBody.Replace("{{code}}", code);
@@ -83,6 +84,8 @@ namespace HeyaChat_Authorization.Services
 
                     _client.SendMailAsync(message);
                 }
+
+                return Task.CompletedTask;
             }
             catch (Exception ex)
             {
@@ -90,7 +93,7 @@ namespace HeyaChat_Authorization.Services
             }
         }
 
-        public void SendVerificationEmail(long userId, string email)
+        public Task SendVerificationEmail(long userId, string email)
         {
             // Generate code
             string code = GenerateCode();
@@ -110,7 +113,7 @@ namespace HeyaChat_Authorization.Services
             string subject = "Here's your verification code!";
 
             // Read html file to string
-            string htmlBody = File.ReadAllText($"{_folderPath}/VerificationEmail.html");
+            string htmlBody = _fileSystem.File.ReadAllText($"{_folderPath}/VerificationEmail.html");
 
             // Insert dynamic values to body string
             string body = htmlBody.Replace("{{code}}", code);
@@ -128,6 +131,8 @@ namespace HeyaChat_Authorization.Services
 
                     _client.SendMailAsync(message);
                 }
+
+                return Task.CompletedTask;
             }
             catch (Exception ex)
             {
@@ -135,9 +140,9 @@ namespace HeyaChat_Authorization.Services
             }
         }
 
-        public void SendVerificationTextMessage(long userId, string phone)
+        public Task SendVerificationTextMessage(long userId, string phone)
         {
-            
+            return Task.CompletedTask;
         }
 
         private string GenerateCode()

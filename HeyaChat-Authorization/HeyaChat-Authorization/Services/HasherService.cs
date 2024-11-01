@@ -1,5 +1,4 @@
 ﻿using HeyaChat_Authorization.Services.Interfaces;
-using System;
 using System.Security.Cryptography;
 
 namespace HeyaChat_Authorization.Services

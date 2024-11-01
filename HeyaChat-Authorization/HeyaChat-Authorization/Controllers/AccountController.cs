@@ -71,19 +71,6 @@ namespace HeyaChat_Authorization.Controllers
         [Route("ChangeBiometricsKey")]
         public IActionResult ChangeBiometricsKey(AddBiometricsKey dro)
         {
-            // Get userId from token
-            long userId = _jwtService.GetClaims(Request).userId;
-
-            // Read user from db with userid
-            User user = _usersRepository.GetUserByUserID(userId);
-
-            // Assign new biometricskey to user and save to db
-            user.BiometricsKey = dro.BiometricsKey;
-
-            _usersRepository.UpdateUser(user);
-
-            // We probably don't have to audit log this?
-
             return StatusCode(StatusCodes.Status501NotImplemented);
         }
 

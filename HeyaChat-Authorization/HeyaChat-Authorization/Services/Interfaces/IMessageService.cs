@@ -2,10 +2,10 @@
 {
     public interface IMessageService
     {
-        void SendRecoveryEmail(long userId, string email);
+        Task SendRecoveryEmail(long userId, string email);
 
-        void SendVerificationEmail(long userId, string email);
+        Task SendVerificationEmail(long userId, string email);
 
-        void SendVerificationTextMessage(long userId, string email);
+        Task SendVerificationTextMessage(long userId, string email);
     }
 }

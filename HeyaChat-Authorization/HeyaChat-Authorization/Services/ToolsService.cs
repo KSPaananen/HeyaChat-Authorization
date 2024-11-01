@@ -13,7 +13,7 @@ namespace HeyaChat_Authorization.Services
         {
             string firstSect = phoneNumber.Substring(0, 4);
             string lastSect = phoneNumber.Substring(phoneNumber.Length - 1, 1);
-            string middleSect = new string('*', phoneNumber.Length - 4);
+            string middleSect = new string('*', phoneNumber.Length - 5);
 
             return firstSect + middleSect + lastSect;
         }
@@ -23,7 +23,12 @@ namespace HeyaChat_Authorization.Services
             // Get first letters
             string firstLetter = email.Substring(0, 1);
             string secondLetter = email.Substring(email.IndexOf('.') + 1, 1);
-            int secondLetterIndex = email.IndexOf('.') + 1;
+            int secondLetterIndex = 0;
+
+            if (email.IndexOf('.') < email.IndexOf('@'))
+            {
+                secondLetterIndex = email.IndexOf('.') + 1;
+            }
 
             string maskedEmail = firstLetter;
 
@@ -39,8 +44,9 @@ namespace HeyaChat_Authorization.Services
                 else if (i == secondLetterIndex)
                 {
                     maskedEmail += secondLetter;
+                    i++;
                 }
-                else
+                else 
                 {
                     maskedEmail += letter;
                 }
