@@ -13,7 +13,6 @@ namespace HeyaChat_Authorization.Repositories.Interfaces
         // Returns ID of a created row
         long UpdateDevice(Device device);
 
-        // Returns boolean based on if deletion was succesful
-        bool DeleteDevice(long deviceId);
+        void DeleteDevice(long deviceId);
     }
 }

@@ -101,28 +101,6 @@ namespace HeyaChat_Authorization.Repositories
             }
         }
 
-        public void DeleteUser(long userId)
-        {
-            try
-            {
-                var result = (from user in _context.Users
-                              where user.UserId == userId
-                              select user).SingleOrDefault() ?? null;
-
-                if (result != null)
-                {
-                    _context.Users.Remove(result);
-                    _context.SaveChanges();
-                }
-
-                throw new Exception("Could not delete user found with provided userId.");
-            }
-            catch (Exception ex)
-            {
-                throw new Exception(ex.Message);
-            }
-        }
-
         public (bool usernameInUse, bool emailInUse) UsernameOrEmailInUse(string username, string email)
         {
             try

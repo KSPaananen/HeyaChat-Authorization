@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.IdentityModel.Tokens;
 using Swashbuckle.AspNetCore.Filters;
+using System.IO.Abstractions;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading.RateLimiting;
 
@@ -122,6 +123,8 @@ builder.Services.AddScoped<ISuspensionsRepository, SuspensionsRepository>();
 builder.Services.AddScoped<IAuditLogsRepository, AuditLogsRepository>();
 builder.Services.AddScoped<IBlockedCredentialsRepository, BlockedCredentialsRepository>();
 builder.Services.AddScoped<IDeleteRequestsRepository, DeleteRequestsRepository>();
+
+builder.Services.AddScoped<IFileSystem, FileSystem>();
 
 // Configure logging
 builder.Logging.ClearProviders();

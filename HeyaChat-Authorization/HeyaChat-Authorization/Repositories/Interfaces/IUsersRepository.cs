@@ -18,9 +18,6 @@ namespace HeyaChat_Authorization.Repositories.Interfaces
         // Returns ID of the updated row
         long UpdateUser(User updatedUser);
 
-        // Returns void
-        void DeleteUser(long userId);
-
         // Returns tuple booleans if username already exists or email is blocked from creating another account
         (bool usernameInUse, bool emailInUse) UsernameOrEmailInUse(string username, string email);
 

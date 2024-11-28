@@ -399,3 +399,4 @@ FodyWeavers.xsd
 /HeyaChat-Authorization/HeyaChat-Authorization/appsettings.json
 /HeyaChat-Authorization/HeyaChat-Authorization/appsettings.Development.json
 /HeyaChat-Authorization/HeyaChat-Authorization/appsettings.Production.json
+/HeyaChat-Authorization/HeyaChat-Authorization.IntegrationTests/appsettings.test.json

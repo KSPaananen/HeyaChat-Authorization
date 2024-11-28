@@ -92,7 +92,7 @@ namespace HeyaChat_Authorization.Repositories
             }
         }
 
-        public bool DeleteDevice(long deviceId)
+        public void DeleteDevice(long deviceId)
         {
             try
             {
@@ -105,8 +105,6 @@ namespace HeyaChat_Authorization.Repositories
                     _context.Devices.Remove(result);
                     _context.SaveChanges();
                 }
-
-                return false;
             }
             catch (Exception ex)
             {

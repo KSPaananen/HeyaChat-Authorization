@@ -69,30 +69,6 @@ namespace HeyaChat_Authorization.Repositories
             }
         }
 
-        public bool DeleteUserDetails(long userId)
-        {
-            try
-            {
-                var result = (from user in _context.UserDetails
-                              where user.UserId == userId
-                              select user).SingleOrDefault() ?? null;
-
-                if (result != null)
-                {
-                    _context.UserDetails.Remove(result);
-                    _context.SaveChanges();
-
-                    return true;
-                }
-
-                return false;
-            }
-            catch (Exception ex)
-            {
-                throw new Exception(ex.Message);
-            }
-        }
-
 
     }
 }
