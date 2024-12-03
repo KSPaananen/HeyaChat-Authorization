@@ -1,8 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
+﻿namespace HeyaChat_Authorization.Models;
 
-namespace HeyaChat_Authorization.Models;
-
+/// <summary>
+///     <para>Table which stores logs of user actions such as email changes, new logins etc...</para>
+///     <para>Do not assign PerformedAt with code, because it's handled by the database.</para>
+/// </summary>
 public partial class AuditLog
 {
     public long LogId { get; set; }

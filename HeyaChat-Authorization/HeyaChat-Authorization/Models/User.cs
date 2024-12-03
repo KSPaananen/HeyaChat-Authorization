@@ -1,15 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
+﻿namespace HeyaChat_Authorization.Models;
 
-namespace HeyaChat_Authorization.Models;
-
+/// <summary>
+///     <para>Table for storing users.</para>
+/// </summary>
 public partial class User
 {
     public long UserId { get; set; }
 
     public string Username { get; set; } = null!;
 
-    public byte[] PasswordHash { get; set; } = null!;
+    public string PasswordHash { get; set; } = null!;
 
     public byte[] PasswordSalt { get; set; } = null!;
 
@@ -23,7 +23,7 @@ public partial class User
 
     public virtual ICollection<Device> Devices { get; set; } = new List<Device>();
 
-    public virtual ICollection<MfaCode> MfaCodes { get; set; } = new List<MfaCode>();
+    public virtual ICollection<Codes> MfaCodes { get; set; } = new List<Codes>();
 
     public virtual ICollection<Suspension> Suspensions { get; set; } = new List<Suspension>();
 }

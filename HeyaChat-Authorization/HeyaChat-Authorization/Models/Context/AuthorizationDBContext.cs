@@ -1,24 +1,21 @@
 ﻿using System;
-using System.Collections.Generic;
-using HeyaChat_Authorization.Repositories.Configuration;
+using HeyaChat_Authorization.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
 namespace HeyaChat_Authorization.Models.Context;
 
 public partial class AuthorizationDBContext : DbContext
 {
-    private IConfiguration _config;
-    private ConfigurationRepository _repository;
+    private IConfigurationRepository _configurationRepository;
 
-    public AuthorizationDBContext()
+    public AuthorizationDBContext(IConfigurationRepository configurationRepository)
     {
-
+        _configurationRepository = configurationRepository ?? throw new NullReferenceException(nameof(configurationRepository));
     }
 
-    public AuthorizationDBContext(IConfiguration config, ConfigurationRepository repository, DbContextOptions<AuthorizationDBContext> options) : base(options)
+    public AuthorizationDBContext(IConfigurationRepository configurationRepository, DbContextOptions<AuthorizationDBContext> options) : base(options)
     {
-        _config = config ?? throw new NullReferenceException(nameof(config));
-        _repository = repository ?? throw new NullReferenceException(nameof(_repository));
+        _configurationRepository = configurationRepository ?? throw new NullReferenceException(nameof(configurationRepository));
     }
 
     public virtual DbSet<AuditLog> AuditLogs { get; set; }
@@ -29,7 +26,7 @@ public partial class AuthorizationDBContext : DbContext
 
     public virtual DbSet<Device> Devices { get; set; }
 
-    public virtual DbSet<MfaCode> MfaCodes { get; set; }
+    public virtual DbSet<Codes> Codess { get; set; }
 
     public virtual DbSet<Suspension> Suspensions { get; set; }
 
@@ -40,8 +37,13 @@ public partial class AuthorizationDBContext : DbContext
     public virtual DbSet<UserDetail> UserDetails { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-        => optionsBuilder.UseNpgsql(_repository.GetConnectionStringFromConfiguration());
-
+    {
+        optionsBuilder.UseNpgsql(_configurationRepository.GetAzurePostGreSqlServerConnectionString(), builder =>
+        {
+            builder.EnableRetryOnFailure(5, TimeSpan.FromSeconds(5), null);
+        });
+    }
+        
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<AuditLog>(entity =>
@@ -133,13 +135,13 @@ public partial class AuthorizationDBContext : DbContext
                 .HasConstraintName("devices_user_id_fkey");
         });
 
-        modelBuilder.Entity<MfaCode>(entity =>
+        modelBuilder.Entity<Codes>(entity =>
         {
-            entity.HasKey(e => e.CodeId).HasName("mfa_codes_pkey");
+            entity.HasKey(e => e.CodeId).HasName("codes_pkey");
 
-            entity.ToTable("mfa_codes");
+            entity.ToTable("codes");
 
-            entity.HasIndex(e => e.UserId, "idx_mfa_codes_user_id");
+            entity.HasIndex(e => e.UserId, "idx_codes_user_id");
 
             entity.Property(e => e.CodeId).HasColumnName("code_id");
             entity.Property(e => e.Code)
@@ -154,7 +156,7 @@ public partial class AuthorizationDBContext : DbContext
             entity.HasOne(d => d.User).WithMany(p => p.MfaCodes)
                 .HasForeignKey(d => d.UserId)
                 .OnDelete(DeleteBehavior.Cascade)
-                .HasConstraintName("mfa_codes_user_id_fkey");
+                .HasConstraintName("codes_user_id_fkey");
         });
 
         modelBuilder.Entity<Suspension>(entity =>
@@ -237,12 +239,13 @@ public partial class AuthorizationDBContext : DbContext
 
         modelBuilder.Entity<UserDetail>(entity =>
         {
-            entity
-                .HasNoKey()
-                .ToTable("user_details");
+            entity.HasKey(e => e.DetailId).HasName("user_details_pkey");
+
+            entity.ToTable("user_details");
 
             entity.HasIndex(e => e.UserId, "idx_user_details_user_id");
 
+            entity.Property(e => e.DetailId).HasColumnName("detail_id");
             entity.Property(e => e.CreatedAt)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
                 .HasColumnName("created_at");
@@ -259,11 +262,6 @@ public partial class AuthorizationDBContext : DbContext
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
                 .HasColumnName("updated_at");
             entity.Property(e => e.UserId).HasColumnName("user_id");
-
-            entity.HasOne(d => d.User).WithMany()
-                .HasForeignKey(d => d.UserId)
-                .OnDelete(DeleteBehavior.Cascade)
-                .HasConstraintName("user_details_user_id_fkey");
         });
 
         OnModelCreatingPartial(modelBuilder);

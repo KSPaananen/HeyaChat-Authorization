@@ -1,22 +1,15 @@
-﻿namespace HeyaChat_Authorization.DataObjects.DRO
+﻿using HeyaChat_Authorization.DataObjects.DRO.SubClasses;
+
+namespace HeyaChat_Authorization.DataObjects.DRO
 {
     public class RegisterDRO
     {
-        public string Username { get; set; } = null!;
+        public string Username { get; set; } = "";
 
-        public string Password { get; set; } = null!;
+        public string Password { get; set; } = "";
 
-        public string Email { get; set; } = null!;
+        public string Email { get; set; } = "";
 
-        public DeviceData Device { get; set; } = null!;
-    }
-
-    public class DeviceData
-    { 
-        public string DeviceName { get; set; } = null!;
-
-        public Guid? DeviceIdentifier { get; set; }
-
-        public string CountryTag { get; set; } = null!;
+        public UserDevice Device { get; set; } = null!;
     }
 }
